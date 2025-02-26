@@ -57,7 +57,7 @@
       function resize(height, width, options = {}) {
         let urlParams = new URLSearchParams(document.location.search);
         const iframe_id = urlParams.get("floating_iframe_id"); // Gets iframe ID
-        console.log(iframe_id)
+        console.log("iframe id is: "iframe_id)
     
         window.parent.postMessage(
             {
