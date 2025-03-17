@@ -74,15 +74,51 @@
         );
     }
     
-   /* // Set initial size
+   // Set initial size
     resize(500, 250, { initial: true });
     
     // Resize after 25 seconds
     setTimeout(() => {
         resize(600, 400, { initial: false });
-    }, 25000); */
+    }, 25000); 
 
-        var config = {
+    // Attach event listeners for chat panel close/minimize
+        document.addEventListener("DOMContentLoaded", function () {
+            var config = {
+                chatPanel: {
+                    styling: { pace: "supersonic", position: { spacingBottom: 0, spacingRight: 0 } }
+                },
+                trigger: {
+                    smallPositionX: 0,
+                    smallPositionY: 0,
+                    largePositionX: 0,
+                    largePositionY: 0,
+                }
+            };
+        
+            var { chatPanel } = window.boostInit('tss', config);
+        
+            chatPanel.addEventListener("chatPanelOpened", function () {
+                console.log("Chat panel opened");
+                resize(600, 400);
+            });
+        
+            chatPanel.addEventListener("chatPanelClosed", function () {
+                console.log("Chat panel closed");
+                resize(64, 64); // Make the frame small again
+            });
+        
+            chatPanel.addEventListener("chatPanelMinimized", function () {
+                console.log("Chat panel minimized");
+                resize(64, 64); // Shrink frame on minimize
+            });
+        });
+
+
+
+        
+
+       /* var config = {
             chatPanel: {
                 styling: { pace: "supersonic", position: { spacingBottom: 0, spacingRight: 0 } }
             },
@@ -108,7 +144,7 @@
         chatPanel.addEventListener("chatPanelMinimized", function (event) {
             console.log("Chat panel opened");
             resize(64, 64); // height 50, width 50
-        }); 
+        }); */
     </script>
 
 </body>
