@@ -74,13 +74,13 @@
         );
     }
     
-    // Set initial size
-    resize(600, 300, { initial: true });
+   /* // Set initial size
+    resize(500, 250, { initial: true });
     
     // Resize after 25 seconds
     setTimeout(() => {
         resize(600, 400, { initial: false });
-    }, 25000); 
+    }, 25000); */
 
         var config = {
             chatPanel: {
@@ -99,7 +99,7 @@
 
         chatPanel.addEventListener("chatPanelOpened", function (event) {
             console.log("Chat panel opened");
-            resize(360, 550); // height 300, width 300
+            resize(500, 250); // height 300, width 300
         })
         chatPanel.addEventListener("chatPanelClosed", function (event) {
             console.log("Chat panel opened");
