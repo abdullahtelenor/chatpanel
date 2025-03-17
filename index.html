@@ -75,7 +75,7 @@
     }
     
    // Set initial size
-    resize(500, 250, { initial: true });
+    resize(64, 64, { initial: true });
     
     // Resize after 25 seconds
     setTimeout(() => {
@@ -97,10 +97,10 @@
         
             var { chatPanel } = window.boostInit('tss', config);
         
-            /*chatPanel.addEventListener("chatPanelOpened", function () {
+            chatPanel.addEventListener("chatPanelOpened", function () {
                 console.log("Chat panel opened");
-                resize(600, 400);
-            }); */
+                resize(400, 150);
+            }); 
         
             chatPanel.addEventListener("chatPanelClosed", function () {
                 console.log("Chat panel closed");
