@@ -67,6 +67,13 @@
         const iframe_id = urlParams.get("floating_iframe_id"); // Gets iframe ID
         console.log("iframe id is: "+iframe_id)
         console.log("this is initial function resize")
+
+          // Find the iFrame element
+        let iframe = document.getElementById(iframe_id);
+        if (iframe) {
+            iframe.style.borderRadius = "50%"; // Makes it round
+            iframe.style.overflow = "hidden";  // Ensures content stays within shape
+        }
     
         window.parent.postMessage(
             {
