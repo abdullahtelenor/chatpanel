@@ -75,7 +75,7 @@
     }
     
    // Set initial size
-   resize(84, 84, { initial: true });
+   resize(100, 100, { initial: true });
     
     // Resize after 25 seconds
     // setTimeout(() => {
@@ -99,7 +99,7 @@
         
             chatPanel.addEventListener("chatPanelOpened", function () {
                 console.log("Chat panel opened");
-                resize(600, 400);
+                resize(500, 350);
             }); 
         
             chatPanel.addEventListener("chatPanelClosed", function () {
@@ -109,7 +109,7 @@
         
             chatPanel.addEventListener("chatPanelMinimized", function () {
                 console.log("Chat panel minimized");
-                resize(84, 84); // Shrink frame on minimize
+                resize(100, 100); // Shrink frame on minimize
             });
     
 
