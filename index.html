@@ -58,6 +58,7 @@
         let urlParams = new URLSearchParams(document.location.search);
         const iframe_id = urlParams.get("floating_iframe_id"); // Gets iframe ID
         console.log("iframe id is: "+iframe_id)
+        console.log("this is initial function resize")
     
         window.parent.postMessage(
             {
@@ -104,7 +105,7 @@
         
             chatPanel.addEventListener("chatPanelClosed", function () {
                 console.log("Chat panel closed");
-                resize(84, 84); // Make the frame small again
+                resize(100, 100); // Make the frame small again
             });
         
             chatPanel.addEventListener("chatPanelMinimized", function () {
