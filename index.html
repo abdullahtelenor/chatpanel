@@ -23,7 +23,7 @@
 
     <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-      //var boost = window.boostInit("tss");
+      var boost = window.boostInit("tss");
     </script>
     <script>
 
@@ -95,7 +95,7 @@
                 }
             };
         
-           var { chatPanel } = window.boostInit('tss', config);
+           var { chatPanel } = boost;
         
             chatPanel.addEventListener("chatPanelOpened", function () {
                 console.log("Chat panel opened");
