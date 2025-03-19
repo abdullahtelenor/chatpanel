@@ -15,14 +15,7 @@
             display: flex;
             justify-content: flex-end;
             align-items: flex-end;
-            padding: 20px; /* Adjust as needed */
-           /* margin: 0;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f9f9f9; */
+            padding: 10px; /* Adjust as needed */
         }
         .chat-icon {
             position: fixed;
@@ -105,11 +98,11 @@
     }
     
    // Set initial size
-   resize(100, 100, { initial: true });
+   resize(90, 90, { initial: true });
     
     // Resize after 25 seconds
     setTimeout(() => {
-       resize(100, 100, { initial: false });
+       resize(90, 90, { initial: false });
      }, 100); 
 
     // Attach event listeners for chat panel close/minimize
@@ -134,12 +127,12 @@
         
             chatPanel.addEventListener("chatPanelClosed", function () {
                 console.log("Chat panel closed");
-                resize(100, 100); // Make the frame small again
+                resize(90, 90); // Make the frame small again
             });
         
             chatPanel.addEventListener("chatPanelMinimized", function () {
                 console.log("Chat panel minimized");
-                resize(100, 100); // Shrink frame on minimize
+                resize(90, 90); // Shrink frame on minimize
             });
     
 
