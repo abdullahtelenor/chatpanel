@@ -30,6 +30,7 @@
 
 
     <script>
+        /*
   const customRedirectQuery = new URLSearchParams(window.location.search);
 
   function initChat() {
@@ -83,14 +84,21 @@
   } else {
     initChat();
   }
+  */
 </script>
 
-<!-- Ensure this is AFTER your script logic -->
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-
-
-
-
+    <script>
+      var boost = window.boostInit("tss",{
+  chatPanel: {
+    header: {
+      filters: {
+        filterValues: ["finance"]
+      }
+    },
+  }
+});
+</script>
 
 
     
