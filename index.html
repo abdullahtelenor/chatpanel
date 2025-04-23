@@ -32,12 +32,12 @@
   if (!customRedirectQuery.get("saml_code")) {
     const existingConversationId = localStorage.getItem("boostai.conversation.id");
 
-    // Get the full URL of the current page (this one: https://abdullahtelenor.github.io/chatpanel/)
-    const currentPageUrl = window.location.href;
+    // Hardcoded redirect back to your hosted chatbot page
+    const redirectBackUrl = "https://abdullahtelenor.github.io/chatpanel/";
 
     const newQueryString = new URLSearchParams({
       sso: "",
-      RedirectState: currentPageUrl,
+      RedirectState: redirectBackUrl,
     });
 
     const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
@@ -64,7 +64,6 @@
     initChat();
   }
 
-  // Your chatbot initialization with filters
   function initChat() {
     window.boostInit("tss", {
       chatPanel: {
@@ -78,6 +77,7 @@
   }
 </script>
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
 
 
 
