@@ -25,14 +25,34 @@
     </style>
 </head>
 <body>
-   <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-   <script>
+   
+
+
+
+    <script>
   const customRedirectQuery = new URLSearchParams(window.location.search);
+
+  function initChat() {
+    // Wait until the Boost script is available
+    if (typeof window.boostInit === "function") {
+      window.boostInit("tss", {
+        chatPanel: {
+          header: {
+            filters: {
+              filterValues: ["finance"],
+            },
+          },
+        },
+      });
+    } else {
+      console.warn("Boost script not ready, retrying...");
+      setTimeout(initChat, 100); // Retry in 100ms
+    }
+  }
 
   if (!customRedirectQuery.get("saml_code")) {
     const existingConversationId = localStorage.getItem("boostai.conversation.id");
 
-    // Hardcoded redirect back to your hosted chatbot page
     const redirectBackUrl = "https://abdullahtelenor.github.io/chatpanel/";
 
     const newQueryString = new URLSearchParams({
@@ -63,19 +83,11 @@
   } else {
     initChat();
   }
-
-  function initChat() {
-    window.boostInit("tss", {
-      chatPanel: {
-        header: {
-          filters: {
-            filterValues: ["finance"],
-          },
-        },
-      },
-    });
-  }
 </script>
+
+<!-- Ensure this is AFTER your script logic -->
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
 
 
 
