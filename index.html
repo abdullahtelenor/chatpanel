@@ -26,44 +26,57 @@
 </head>
 <body>
 
-   <script> 
-    /* init code goes here */
+   <script>
+  const customRedirectQuery = new URLSearchParams(window.location.search);
 
-    const customRedirectQuery = new URLSearchParams(document.location.search);
-    if (!customRedirectQuery.get("saml_code")) {
-      const existingConversationId = window.localStorage.getItem(
-        "boostai.conversation.id",
-      );
-    
-      const newQueryString = new URLSearchParams({
-        sso: "",
-        RedirectState:
-          "https://" + document.location.host + document.location.pathname,
+  if (!customRedirectQuery.get("saml_code")) {
+    const existingConversationId = localStorage.getItem("boostai.conversation.id");
+
+    const currentUrl = window.location.href;
+
+    const newQueryString = new URLSearchParams({
+      sso: "",
+      RedirectState: currentUrl,
+    });
+
+    const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
+    redirectUrl.search = newQueryString.toString();
+
+    if (existingConversationId) {
+      fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+        body: JSON.stringify({ conversation_id: existingConversationId }),
+      }).then((result) => {
+        if (result.status === 403) {
+          window.location.replace(redirectUrl);
+        } else {
+          initChat();
+        }
       });
-      const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
-      redirectUrl.search = newQueryString.toString();
-    
-      if (existingConversationId) {
-        fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=UTF-8",
-          },
-          body: JSON.stringify({ conversation_id: existingConversationId }),
-        }).then((result) => {
-          if (result.status == 403) {
-            window.location.replace(redirectUrl);
-          } else {
-            window.boostInit("tss");
-          }
-        });
-      } else {
-        window.location.replace(redirectUrl);
-      }
     } else {
-      window.boostInit("tss");
+      window.location.replace(redirectUrl);
     }
-   </script>
+  } else {
+    initChat();
+  }
+
+  function initChat() {
+    window.boostInit("tss", {
+      chatPanel: {
+        header: {
+          filters: {
+            filterValues: ["finance"], // Dynamically pass based on page if needed
+          },
+        },
+      },
+    });
+  }
+</script>
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
 
     
     
