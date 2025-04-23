@@ -28,12 +28,13 @@
    
 
 
-<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
     <script>
      
   const customRedirectQuery = new URLSearchParams(window.location.search);
 
   function initChat() {
+      <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     // Wait until the Boost script is available
     if (typeof window.boostInit === "function") {
       window.boostInit("tss", {
