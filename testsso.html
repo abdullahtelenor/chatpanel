@@ -32,57 +32,57 @@
     <script>
         const customRedirectQuery = new URLSearchParams(window.location.search);
 
-function initChat() {
-  // Wait until the Boost script is available
-  if (typeof window.boostInit === "function") {
-    window.boostInit("tss", {
-      chatPanel: {
-        header: {
-          filters: {
-            filterValues: ["finance"],
-          },
-        },
-      },
-    });
-  } else {
-    console.warn("Boost script not ready, retrying...");
-    setTimeout(initChat, 100); // Retry in 100ms
-  }
-}
-
-if (!customRedirectQuery.get("saml_code")) {
-  const existingConversationId = window.localStorage.getItem("boostai.conversation.id");
-
-  const redirectBackUrl = "https://abdullahtelenor.github.io/chatpanel/";
-
-  const newQueryString = new URLSearchParams({
-    sso: "",
-    RedirectState: redirectBackUrl,
-  });
-
-  const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
-  redirectUrl.search = newQueryString.toString();
-
-  if (existingConversationId) {
-    fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=UTF-8",
-      },
-      body: JSON.stringify({ conversation_id: existingConversationId }),
-    }).then((result) => {
-      if (result.status === 403) {
-        window.location.replace(redirectUrl);
-      } else {
-        initChat();
-      }
-    });
-  } else {
-    window.location.replace(redirectUrl);
-  }
-} else {
-  initChat();
-}
+        function initChat() {
+          // Wait until the Boost script is available
+          if (typeof window.boostInit === "function") {
+            window.boostInit("tss", {
+              chatPanel: {
+                header: {
+                  filters: {
+                    filterValues: ["finance"],
+                  },
+                },
+              },
+            });
+          } else {
+            console.warn("Boost script not ready, retrying...");
+            setTimeout(initChat, 100); // Retry in 100ms
+          }
+        }
+        
+        if (!customRedirectQuery.get("saml_code")) {
+          const existingConversationId = window.localStorage.getItem("boostai.conversation.id");
+        
+          const redirectBackUrl = "https://abdullahtelenor.github.io/chatpanel/testsso.html";
+        
+          const newQueryString = new URLSearchParams({
+            sso: "",
+            RedirectState: redirectBackUrl,
+          });
+        
+          const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
+          redirectUrl.search = newQueryString.toString();
+        
+          if (existingConversationId) {
+            fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json; charset=UTF-8",
+              },
+              body: JSON.stringify({ conversation_id: existingConversationId }),
+            }).then((result) => {
+              if (result.status === 403) {
+                window.location.replace(redirectUrl);
+              } else {
+                initChat();
+              }
+            });
+          } else {
+            window.location.replace(redirectUrl);
+          }
+        } else {
+          initChat();
+        }
 
     /* 
   const customRedirectQuery = new URLSearchParams(window.location.search);
