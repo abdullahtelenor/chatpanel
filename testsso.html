@@ -30,6 +30,50 @@
 
 
     <script>
+        const customRedirectQuery = new URLSearchParams(document.location.search);
+          if (!customRedirectQuery.get("saml_code")) {
+            const existingConversationId = window.localStorage.getItem(
+              "boostai.conversation.id",
+            );
+        
+            const newQueryString = new URLSearchParams({
+              sso: "",
+              RelayState:
+                "https://" + document.location.host + document.location.pathname,
+            });
+            const redirectUrl = new URL("
+        https://tss.boost.ai/api/auth/saml2/
+        ");
+            redirectUrl.search = newQueryString.toString();
+        
+            if (existingConversationId) {
+              fetch("
+        https://tss.boost.ai/api/auth/saml2/verify_front_session_id/
+        ", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json; charset=UTF-8",
+                },
+                body: JSON.stringify({ conversation_id: existingConversationId }),
+              }).then((result) => {
+                if (result.status == 403) {
+                  window.location.replace(redirectUrl);
+                } else {
+                  window.boostInit("tss");
+                }
+              });
+            } else {
+              window.location.replace(redirectUrl);
+            }
+          } else {
+            window.boostInit("tss");
+          }
+
+
+
+
+
+        
     /* 
   const customRedirectQuery = new URLSearchParams(window.location.search);
 
