@@ -29,11 +29,14 @@
 
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-      var boost = window.boostInit("tss"); 
-        boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-        boost.chatPanel.setFilterValues(ev.detail.filterValue);
-    }
-    );
+      var boost = window.boostInit("tss");
+    chatPanel.addEventListener("setFilterValue", (ev) => {
+        const value = ev.detail.filterValue;
+        boost.chatPanel.setFilterValues(value); // immediate
+        setTimeout(() => {
+            boost.chatPanel.setFilterValues(value); // after 500 ms
+        }, 500);
+    });
 </script>
 
 </body>
