@@ -30,6 +30,10 @@
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
       var boost = window.boostInit("tss"); 
+        boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+        boost.chatPanel.setFilterValues(ev.detail.filterValue);
+    }
+    );
 </script>
 
 </body>
