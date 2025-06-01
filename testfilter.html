@@ -41,7 +41,8 @@
          //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}`;
         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.origin}/`;
         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}/`;
-        window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}/`
+        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}/`;
+        
         setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
        
         boost.chatPanel.show()
