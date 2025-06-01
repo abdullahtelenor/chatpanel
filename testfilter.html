@@ -43,9 +43,23 @@
         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}/`;
         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}/`;
         
-          const currentUrl = window.location.origin + window.location.pathname;
-          const relayState = encodeURIComponent(currentUrl);
-          window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
+          //const currentUrl = window.location.origin + window.location.pathname;
+          //const relayState = encodeURIComponent(currentUrl);
+          //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
+
+        
+  const isLoggedIn = localStorage.getItem("boostLoggedIn");
+
+  if (!isLoggedIn) {
+    const currentUrl = window.location.origin + window.location.pathname;
+    const relayState = encodeURIComponent(currentUrl);
+    window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
+  } else {
+    // Show chat panel if already logged in
+    const boost = window.boostInit("tss");
+    boost.chatPanel.show();
+  }
+
 
         setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
        
