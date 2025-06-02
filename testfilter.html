@@ -5,57 +5,73 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>Chat Panel for coupa</title>
-     
+
     <style>
         body {
-             margin: 0;
+            margin: 0;
             overflow: hidden;
             height: 100vh;
             display: flex;
             justify-content: flex-end;
             align-items: flex-end;
-            padding: 0px; /* Adjust as needed */
+            padding: 0px;
+            /* Adjust as needed */
         }
+
         .chat-icon {
             position: fixed;
             bottom: 0;
             right: 0;
-            margin: 10px; /* Optional spacing */
+            margin: 10px;
+            /* Optional spacing */
         }
     </style>
 </head>
+
 <body>
-   
 
-<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
+    <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-      var boost = window.boostInit("tss");
-    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-        console.log("Event Triggered:", ev);
-        const value = ev.detail.filterValue;
-        boost.chatPanel.setFilterValues(value); // immediate
-        setTimeout(() => {
-            boost.chatPanel.setFilterValues(value); // after 500 ms
-        }, 500);
-    });
-         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}`;
-        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.origin}/`;
-        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}/`;
-        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}/`;
-        
-          //const currentUrl = window.location.origin + window.location.pathname;
-          //const relayState = encodeURIComponent(currentUrl);
-          //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
+    const customRedirectQuery = new URLSearchParams(document.location.search);
+    if (!customRedirectQuery.get("saml_code")) {
+        const existingConversationId = window.localStorage.getItem(
+            "boostai.conversation.id",
+        );
 
-      window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}`;  
+        const newQueryString = new URLSearchParams({
+            sso: "",
+            RelayState: window.location.href,
+        });
 
-       setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
-       
-        boost.chatPanel.show()
+        const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
 
-</script>
-       
-    
+        redirectUrl.search = newQueryString.toString();
+
+        if (existingConversationId) {
+            fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json; charset=UTF-8",
+                },
+
+                body: JSON.stringify({ conversation_id: existingConversationId }),
+            }).then((result) => {
+                if (result.status == 403) {
+                    window.location.replace(redirectUrl);
+                } else {
+                    window.boostInit("tss");
+                }
+            });
+        } else {
+            window.location.replace(redirectUrl);
+        }
+    } else {
+        window.boostInit("tss");
+    }
+
+    </script>
 
 </body>
 
