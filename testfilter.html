@@ -47,37 +47,11 @@
           //const relayState = encodeURIComponent(currentUrl);
           //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
 
-        
-console.log("🔄 Page loaded");
+      window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}`;  
 
-  // Check if the URL contains a SAML response (indicating return from SSO)
-  const urlParams = new URLSearchParams(window.location.search);
-  const cameFromSSO = urlParams.has("SAMLResponse") || urlParams.has("RelayState");
-
-  if (!cameFromSSO) {
-    console.log("🚪 Not coming from SSO. Redirecting to login...");
-    const currentUrl = window.location.origin + window.location.pathname;
-    const relayState = encodeURIComponent(currentUrl);
-    console.log("📨 Redirecting with RelayState:", relayState);
-    window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
-  } else {
-    console.log("✅ Returned from SSO. Initializing chat panel...");
-    const boost = window.boostInit("tss");
-
-    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-      const value = ev.detail.filterValue;
-      console.log("🎯 Filter value received:", value);
-      boost.chatPanel.setFilterValues(value);
-      setTimeout(() => {
-        boost.chatPanel.setFilterValues(value);
-      }, 500);
-    });
-
-    boost.chatPanel.show();
-    console.log("💬 Chat panel shown");
-       //setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
+       setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
        
-        //boost.chatPanel.show()
+        boost.chatPanel.show()
 
 </script>
        
