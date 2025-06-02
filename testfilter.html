@@ -5,10 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>Chat Panel for coupa</title>
-
+     
     <style>
         body {
-            margin: 0;
+             margin: 0;
             overflow: hidden;
             height: 100vh;
             display: flex;
@@ -16,61 +16,73 @@
             align-items: flex-end;
             padding: 0px; /* Adjust as needed */
         }
-        /* If you need a custom chat icon, uncomment and use this */
-        /* .chat-icon {
+        .chat-icon {
             position: fixed;
             bottom: 0;
             right: 0;
-            margin: 10px;
-        } */
+            margin: 10px; /* Optional spacing */
+        }
     </style>
 </head>
 <body>
+   
 
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-    console.log("🔄 Page loaded");
+    <script>
+      var boost = window.boostInit("tss");
+    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+        console.log("Event Triggered:", ev);
+        const value = ev.detail.filterValue;
+        boost.chatPanel.setFilterValues(value); // immediate
+        setTimeout(() => {
+            boost.chatPanel.setFilterValues(value); // after 500 ms
+        }, 500);
+    });
+         //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}`;
+        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.origin}/`;
+        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href}/`;
+        //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${window.location.href.replace(/[\/?]+$/, '')}/`;
+        
+          //const currentUrl = window.location.origin + window.location.pathname;
+          //const relayState = encodeURIComponent(currentUrl);
+          //window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
 
-    // Initialize boost once globally
-    let boost;
+        
+console.log("🔄 Page loaded");
 
-    // Check if the URL contains a SAML response (indicating return from SSO)
-    const urlParams = new URLSearchParams(window.location.search);
-    const cameFromSSO = urlParams.has("SAMLResponse") || urlParams.has("RelayState");
+  // Check if the URL contains a SAML response (indicating return from SSO)
+  const urlParams = new URLSearchParams(window.location.search);
+  const cameFromSSO = urlParams.has("SAMLResponse") || urlParams.has("RelayState");
 
-    if (!cameFromSSO) {
-        console.log("🚪 Not coming from SSO. Redirecting to login...");
-        const currentUrl = window.location.origin + window.location.pathname;
-        const relayState = encodeURIComponent(currentUrl);
-        console.log("📨 Redirecting with RelayState:", relayState);
-        window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
-    } else {
-        console.log("✅ Returned from SSO. Initializing chat panel...");
-        boost = window.boostInit("tss"); // Initialize boost object here
+  if (!cameFromSSO) {
+    console.log("🚪 Not coming from SSO. Redirecting to login...");
+    const currentUrl = window.location.origin + window.location.pathname;
+    const relayState = encodeURIComponent(currentUrl);
+    console.log("📨 Redirecting with RelayState:", relayState);
+    window.location.href = `https://tss.boost.ai/api/auth/saml2/?sso&RelayState=${relayState}`;
+  } else {
+    console.log("✅ Returned from SSO. Initializing chat panel...");
+    const boost = window.boostInit("tss");
 
-        // Add event listener only once
-        if (boost && boost.chatPanel) {
-            boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-                console.log("🎯 Filter value received:", ev.detail.filterValue);
-                const value = ev.detail.filterValue;
+    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+      const value = ev.detail.filterValue;
+      console.log("🎯 Filter value received:", value);
+      boost.chatPanel.setFilterValues(value);
+      setTimeout(() => {
+        boost.chatPanel.setFilterValues(value);
+      }, 500);
+    });
 
-                // Consider if the setTimeout is truly necessary
-                boost.chatPanel.setFilterValues(value);
-                // If the second call is NOT required, remove the setTimeout block
-                /*
-                setTimeout(() => {
-                    boost.chatPanel.setFilterValues(value);
-                }, 500);
-                */
-            });
+    boost.chatPanel.show();
+    console.log("💬 Chat panel shown");
+       //setTimeout(()=>{console.log("Waitiing 0.2s");}, 200);
+       
+        //boost.chatPanel.show()
 
-            boost.chatPanel.show();
-            console.log("💬 Chat panel shown");
-        } else {
-            console.error("❌ Failed to initialize Boost chat panel.");
-        }
-    }
 </script>
+       
+    
 
 </body>
+
 </html>
