@@ -27,6 +27,7 @@
 </head>
 
 <body>
+  <script>
   const samlCode = new URLSearchParams(window.location.search).get("saml_code");
 let chatPanelHasAutoOpened = false; // Opens the chat panel upon saml redirect
  
@@ -83,5 +84,5 @@ boost.chatPanel.addEventListener("setFilterValue", (ev) => {
     boost.chatPanel.setFilterValues(value);
   }, 500);
 });
-
+</script>
 </html>
