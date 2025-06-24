@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Chat Panel for Coupa</title>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      padding: 0;
+    }
+
+    .chat-icon {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+  <script>
+    const samlCode = new URLSearchParams(window.location.search).get("saml_code");
+
+    // Initialize Boost but defer showing the chat panel
+    const boost = window.boostInit("tss");
+
+    // When chat panel is opened, check SAML session
+    boost.chatPanel.addEventListener("chatPanelOpened", () => {
+      const conversationId = window.localStorage.getItem("boostai.conversation.id");
+
+      if (samlCode) {
+        // Already came back from SAML redirect — show the chat panel directly
+        boost.chatPanel.show();
+        return;
+      }
+
+      const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
+      redirectUrl.search = new URLSearchParams({
+        sso: "",
+        RelayState: window.location.href,
+      }).toString();
+
+      if (conversationId) {
+        fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+          },
+          body: JSON.stringify({ conversation_id: conversationId }),
+        }).then((response) => {
+          if (response.status === 403) {
+            window.location.replace(redirectUrl);
+          } else {
+            boost.chatPanel.show();
+          }
+        }).catch(() => {
+          window.location.replace(redirectUrl);
+        });
+      } else {
+        // No conversation ID — go directly to SAML login
+        window.location.replace(redirectUrl);
+      }
+    });
+
+    // Optional: Handle custom events (e.g., setting filters)
+    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+      const value = ev.detail.filterValue;
+      boost.chatPanel.setFilterValues(value);
+      setTimeout(() => {
+        boost.chatPanel.setFilterValues(value);
+      }, 500);
+    });
+  </script>
+</body>
+
+</html>
