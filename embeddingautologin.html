@@ -27,62 +27,61 @@
 </head>
 
 <body>
-  <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-  <script>
-    const samlCode = new URLSearchParams(window.location.search).get("saml_code");
-
-    // Initialize Boost but defer showing the chat panel
-    const boost = window.boostInit("tss");
-
-    if (samlCode) {
-        // Already came back from SAML redirect — show the chat panel directly
-        boost.chatPanel.show();
-        return;
-      }
-
-    // When chat panel is opened, check SAML session
-    boost.chatPanel.addEventListener("chatPanelOpened", () => {
-      const conversationId = window.localStorage.getItem("boostai.conversation.id");
-
-      const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
-      redirectUrl.search = new URLSearchParams({
-        sso: "",
-        RelayState: window.location.href,
-      }).toString();
-
-      if (conversationId) {
-        fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=UTF-8",
-          },
-          body: JSON.stringify({ conversation_id: conversationId }),
-        }).then((response) => {
-          if (response.status === 403) {
-            window.location.replace(redirectUrl);
-          } else {
-            boost.chatPanel.show();
-          }
-        }).catch(() => {
+  const samlCode = new URLSearchParams(window.location.search).get("saml_code");
+let chatPanelHasAutoOpened = false; // Opens the chat panel upon saml redirect
+ 
+// Initialize Boost but defer showing the chat panel
+const boost = window.boostInit("tss");
+if (samlCode) {
+  // Already came back from SAML redirect — show the chat panel directly
+  //if (!chatPanelHasAutoOpened) {
+  //  boost.chatPanel.show();
+  //}
+  //chatPanelHasAutoOpened = true;
+  return;
+}
+ 
+// When chat panel is opened, check SAML session
+boost.chatPanel.addEventListener("chatPanelOpened", () => {
+  const conversationId = window.localStorage.getItem("boostai.conversation.id");
+ 
+  const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
+  redirectUrl.search = new URLSearchParams({
+    sso: "",
+    RelayState: window.location.href,
+  }).toString();
+ 
+  if (conversationId) {
+    fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify({ conversation_id: conversationId }),
+    })
+      .then((response) => {
+        if (response.status === 403) {
           window.location.replace(redirectUrl);
-        });
-      } else {
-        // No conversation ID — go directly to SAML login
+        } else {
+          boost.chatPanel.show();
+        }
+      })
+      .catch(() => {
         window.location.replace(redirectUrl);
-      }
-    });
-
-    
-
-    // Optional: Handle custom events (e.g., setting filters)
-    boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-      const value = ev.detail.filterValue;
-      boost.chatPanel.setFilterValues(value);
-      setTimeout(() => {
-        boost.chatPanel.setFilterValues(value);
-      }, 500);
-    });
-  </script>
-</body>
+      });
+  } else {
+    // No conversation ID — go directly to SAML login
+    window.location.replace(redirectUrl);
+  }
+});
+ 
+// Optional: Handle custom events (e.g., setting filters)
+boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+  const value = ev.detail.filterValue;
+  boost.chatPanel.setFilterValues(value);
+  setTimeout(() => {
+    boost.chatPanel.setFilterValues(value);
+  }, 500);
+});
 
 </html>
