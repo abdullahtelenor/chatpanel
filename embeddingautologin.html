@@ -72,6 +72,12 @@
       }
     });
 
+    if (samlCode) {
+        // Already came back from SAML redirect — show the chat panel directly
+        boost.chatPanel.show();
+        return;
+      }
+
     // Optional: Handle custom events (e.g., setting filters)
     boost.chatPanel.addEventListener("setFilterValue", (ev) => {
       const value = ev.detail.filterValue;
