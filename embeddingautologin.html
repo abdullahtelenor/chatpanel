@@ -35,9 +35,9 @@ let chatPanelHasAutoOpened = false; // Opens the chat panel upon saml redirect
 const boost = window.boostInit("tss");
 if (samlCode) {
   // Already came back from SAML redirect — show the chat panel directly
-  //if (!chatPanelHasAutoOpened) {
-  //  boost.chatPanel.show();
-  //}
+  if (!chatPanelHasAutoOpened) {
+    boost.chatPanel.show();
+  }
   chatPanelHasAutoOpened = true;
   return;
 }
