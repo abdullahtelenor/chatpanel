@@ -34,15 +34,15 @@
     // Initialize Boost but defer showing the chat panel
     const boost = window.boostInit("tss");
 
-    // When chat panel is opened, check SAML session
-    boost.chatPanel.addEventListener("chatPanelOpened", () => {
-      const conversationId = window.localStorage.getItem("boostai.conversation.id");
-
-      if (samlCode) {
+    if (samlCode) {
         // Already came back from SAML redirect — show the chat panel directly
         boost.chatPanel.show();
         return;
       }
+
+    // When chat panel is opened, check SAML session
+    boost.chatPanel.addEventListener("chatPanelOpened", () => {
+      const conversationId = window.localStorage.getItem("boostai.conversation.id");
 
       const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
       redirectUrl.search = new URLSearchParams({
@@ -72,11 +72,7 @@
       }
     });
 
-    if (samlCode) {
-        // Already came back from SAML redirect — show the chat panel directly
-        boost.chatPanel.show();
-        return;
-      }
+    
 
     // Optional: Handle custom events (e.g., setting filters)
     boost.chatPanel.addEventListener("setFilterValue", (ev) => {
