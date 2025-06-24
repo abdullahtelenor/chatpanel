@@ -28,40 +28,70 @@
 
 <body>
   <script>
-  const samlCode = new URLSearchParams(window.location.search).get("saml_code");
-let chatPanelHasAutoOpened = false; // Opens the chat panel upon saml redirect
- 
-// Initialize Boost but defer showing the chat panel
+  // Key under which we store the pre-SAML URL
+const REDIRECT_KEY = "redirectUrlPostRelay";
+
+// Grab the SAML response code (if any)
+const samlCode = new URLSearchParams(window.location.search).get("saml_code");
+
+// If there’s no saml_code yet, stash the current URL right away
+if (!samlCode) {
+  window.localStorage.setItem(REDIRECT_KEY, window.location.href);
+}
+
+// Later we’ll read it back
+const storedRelay = window.localStorage.getItem(REDIRECT_KEY);
+
+// Initialize Boost (deferred show)
 const boost = window.boostInit("tss");
+
+// Helper: true if candidate is same-host or a subdomain of base
+function isSameOrSubdomain(candidate, base) {
+  const c = new URL(candidate).hostname;
+  const b = new URL(base).hostname;
+  return c === b || c.endsWith(`.${b}`);
+}
+
 if (samlCode) {
-  // Already came back from SAML redirect — show the chat panel directly
-  if (!chatPanelHasAutoOpened) {
+  // Returned from SAML
+  if (storedRelay) {
+    try {
+      // Only redirect if it’s truly off-domain
+      if (!isSameOrSubdomain(storedRelay, window.location.href)) {
+        window.localStorage.removeItem(REDIRECT_KEY);
+        window.location.replace(storedRelay);
+      } else {
+        boost.chatPanel.show();
+      }
+    } catch {
+      // On any URL parse error, fall back to chat
+      boost.chatPanel.show();
+    }
+  } else {
+    // No storedRelay → just open chat
     boost.chatPanel.show();
   }
-  chatPanelHasAutoOpened = true;
-  return;
 }
- 
-// When chat panel is opened, check SAML session
+
+// Enforce SAML on panel-open if we haven’t done it yet
 boost.chatPanel.addEventListener("chatPanelOpened", () => {
+  if (samlCode) return; // already handled
+
   const conversationId = window.localStorage.getItem("boostai.conversation.id");
- 
   const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
   redirectUrl.search = new URLSearchParams({
     sso: "",
-    RelayState: window.location.href,
+    RelayState: `${window.location.origin}/esc`,
   }).toString();
- 
+
   if (conversationId) {
     fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=UTF-8",
-      },
+      headers: { "Content-Type": "application/json; charset=UTF-8" },
       body: JSON.stringify({ conversation_id: conversationId }),
     })
-      .then((response) => {
-        if (response.status === 403) {
+      .then((res) => {
+        if (res.status === 403) {
           window.location.replace(redirectUrl);
         } else {
           boost.chatPanel.show();
@@ -71,12 +101,11 @@ boost.chatPanel.addEventListener("chatPanelOpened", () => {
         window.location.replace(redirectUrl);
       });
   } else {
-    // No conversation ID — go directly to SAML login
     window.location.replace(redirectUrl);
   }
 });
- 
-// Optional: Handle custom events (e.g., setting filters)
+
+// Preserve your custom filter handler
 boost.chatPanel.addEventListener("setFilterValue", (ev) => {
   const value = ev.detail.filterValue;
   boost.chatPanel.setFilterValues(value);
@@ -84,5 +113,6 @@ boost.chatPanel.addEventListener("setFilterValue", (ev) => {
     boost.chatPanel.setFilterValues(value);
   }, 500);
 });
+
 </script>
 </html>
