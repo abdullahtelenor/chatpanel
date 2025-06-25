@@ -34,13 +34,17 @@ const REDIRECT_KEY = "redirectUrlPostRelay";
 
 // Grab the SAML response code (if any)
 const samlCode = new URLSearchParams(window.location.search).get("saml_code");
+const relayState = window.location.origin + "/esc";
 
-// If there’s no saml_code yet, stash the current URL right away
+// If there’s no saml_code yet, stash the current URL
 if (!samlCode) {
   window.localStorage.setItem(REDIRECT_KEY, window.location.href);
+} else {
+  // Mark that SAML was completed to avoid repeating the process
+  sessionStorage.setItem("samlCompleted", "true");
 }
 
-// Later we’ll read it back
+// Retrieve the stored redirect URL
 const storedRelay = window.localStorage.getItem(REDIRECT_KEY);
 
 // Initialize Boost (deferred show)
@@ -53,36 +57,42 @@ function isSameOrSubdomain(candidate, base) {
   return c === b || c.endsWith(`.${b}`);
 }
 
+// Handle the post-SAML redirect
 if (samlCode) {
-  // Returned from SAML
+  if (window.location.href === relayState && storedRelay) {
+    // Redirect back to original page after SSO
+    window.localStorage.removeItem(REDIRECT_KEY);
+    window.location.replace(storedRelay);
+    return;
+  }
+
   if (storedRelay) {
     try {
-      // Only redirect if it’s truly off-domain
       if (!isSameOrSubdomain(storedRelay, window.location.href)) {
         window.localStorage.removeItem(REDIRECT_KEY);
         window.location.replace(storedRelay);
       } else {
-        boost.chatPanel.show();
+        boost.chatPanel.show(); // Automatically open chat on return
+        window.localStorage.removeItem(REDIRECT_KEY);
       }
     } catch {
-      // On any URL parse error, fall back to chat
-      boost.chatPanel.show();
+      boost.chatPanel.show(); // Fallback on URL parse error
     }
   } else {
-    // No storedRelay → just open chat
-    boost.chatPanel.show();
+    boost.chatPanel.show(); // No redirect saved, just show chat
   }
 }
 
-// Enforce SAML on panel-open if we haven’t done it yet
+// Enforce SAML on panel-open if not already completed
 boost.chatPanel.addEventListener("chatPanelOpened", () => {
-  if (samlCode) return; // already handled
+  if (samlCode || sessionStorage.getItem("samlCompleted") === "true") return;
 
   const conversationId = window.localStorage.getItem("boostai.conversation.id");
   const redirectUrl = new URL("https://tss.boost.ai/api/auth/saml2/");
+
   redirectUrl.search = new URLSearchParams({
     sso: "",
-    RelayState: `${window.location.origin}/esc`,
+    RelayState: relayState,
   }).toString();
 
   if (conversationId) {
@@ -114,6 +124,5 @@ boost.chatPanel.addEventListener("setFilterValue", (ev) => {
     boost.chatPanel.setFilterValues(value);
   }, 500);
 });
-
 </script>
 </html>
