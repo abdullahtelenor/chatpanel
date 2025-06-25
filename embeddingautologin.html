@@ -34,7 +34,7 @@ const REDIRECT_KEY = "redirectUrlPostRelay";
 
 // Grab the SAML response code (if any)
 const samlCode = new URLSearchParams(window.location.search).get("saml_code");
-const relayState = window.location.origin + "/esc";
+const relayState = window.location.origin + "";
 
 // If there’s no saml_code yet, stash the current URL
 if (!samlCode) {
