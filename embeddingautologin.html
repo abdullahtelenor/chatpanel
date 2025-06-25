@@ -63,7 +63,7 @@ if (samlCode) {
     // Redirect back to original page after SSO
     window.localStorage.removeItem(REDIRECT_KEY);
     window.location.replace(storedRelay);
-    return;
+    
   }
 
   if (storedRelay) {
