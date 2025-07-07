@@ -1,1 +1,86 @@
+const TENANT = "tss";
+const SAML_ENDPOINT = "https://tss.boost.ai/api/auth/saml2/";
+const VERIFY_ENDPOINT = SAML_ENDPOINT + "verify_front_session_id/";
+
+function buildRedirectUrl() {
+  const query = new URLSearchParams({
+    sso: "",
+    RelayState: window.location.href,
+  });
+  const url = new URL(SAML_ENDPOINT);
+  url.search = query.toString();
+  return url;
+}
+
+function verifySession(callback) {
+  const existingConversationId = window.localStorage.getItem(
+    "boostai.conversation.id"
+  );
+
+  if (!existingConversationId) {
+    callback(false);
+    return;
+  }
+
+  fetch(VERIFY_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=UTF-8",
+    },
+    body: JSON.stringify({ conversation_id: existingConversationId }),
+  })
+    .then(function (result) {
+      callback(result.status !== 403);
+    })
+    .catch(function () {
+      callback(false);
+    });
+}
+
+function ensureLoggedIn() {
+  verifySession(function (isValid) {
+    if (!isValid) {
+      window.location.replace(buildRedirectUrl());
+    }
+  });
+}
+
+const boostMaybe = window.boostInit(TENANT);
+
+function attachChatEvents(boost) {
+  boost.chatPanel.addEventListener("chatPanelOpened", ensureLoggedIn);
+
+  boost.chatPanel.addEventListener("setFilterValue", function (ev) {
+    const v = ev.detail.filterValue;
+    boost.chatPanel.setFilterValues(v);
+    setTimeout(function () {
+      boost.chatPanel.setFilterValues(v);
+    }, 500);
+  });
+
+  // Show panel immediately if user is already logged in
+  verifySession(function (isValid) {
+    if (isValid) {
+      boost.chatPanel.show();
+    }
+  });
+}
+
+if (boostMaybe && typeof boostMaybe.then === "function") {
+  boostMaybe.then(attachChatEvents);
+} else if (boostMaybe) {
+  attachChatEvents(boostMaybe);
+}
+
+// Clean up query parameters if returning from SAML
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("saml_code")) {
+  urlParams.delete("saml_code");
+  urlParams.delete("RelayState");
+  const cleanUrl =
+    window.location.pathname +
+    (urlParams.toString() ? "?" + urlParams.toString() : "") +
+    window.location.hash;
+  window.history.replaceState(null, "", cleanUrl);
+}
 
