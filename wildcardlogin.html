@@ -1,5 +1,38 @@
-<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-<script> 
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for coupa</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+            /* Adjust as needed */
+        }
+
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px;
+            /* Optional spacing */
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+    <script>
 const TENANT = "tss";
 const SAML_ENDPOINT = "https://tss.boost.ai/api/auth/saml2/";
 const VERIFY_ENDPOINT = SAML_ENDPOINT + "verify_front_session_id/";
@@ -85,4 +118,13 @@ if (urlParams.get("saml_code")) {
     window.location.hash;
   window.history.replaceState(null, "", cleanUrl);
 }
-</script>
+
+
+
+
+
+    </script>
+
+</body>
+
+</html>
