@@ -1,4 +1,4 @@
-const TENANT = "tss";
+<script> const TENANT = "tss";
 const SAML_ENDPOINT = "https://tss.boost.ai/api/auth/saml2/";
 const VERIFY_ENDPOINT = SAML_ENDPOINT + "verify_front_session_id/";
 
@@ -83,4 +83,4 @@ if (urlParams.get("saml_code")) {
     window.location.hash;
   window.history.replaceState(null, "", cleanUrl);
 }
-
+</script>
