@@ -33,9 +33,19 @@
 
     <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-const TENANT = "tss";
+      const TENANT = "tss";
 const SAML_ENDPOINT = "https://tss.boost.ai/api/auth/saml2/";
 const VERIFY_ENDPOINT = SAML_ENDPOINT + "verify_front_session_id/";
+
+// (1) after SAML login, boost should emit your session/conversation ID
+function listenForSession(boost) {
+  boost.chatPanel.addEventListener("sessionInitialized", function(ev) {
+    window.localStorage.setItem(
+      "boostai.conversation.id",
+      ev.detail.sessionId
+    );
+  });
+}
 
 function buildRedirectUrl() {
   const query = new URLSearchParams({
@@ -59,55 +69,58 @@ function verifySession(callback) {
 
   fetch(VERIFY_ENDPOINT, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8",
-    },
+    headers: { "Content-Type": "application/json; charset=UTF-8" },
     body: JSON.stringify({ conversation_id: existingConversationId }),
   })
-    .then(function (result) {
-      callback(result.status !== 403);
-    })
-    .catch(function () {
-      callback(false);
-    });
+    .then((res) => callback(res.status !== 403))
+    .catch(() => callback(false));
 }
 
-function ensureLoggedIn() {
-  verifySession(function (isValid) {
-    if (!isValid) {
+// (2) enforce-then-open vs. redirect
+function handleChatOpen(boost) {
+  verifySession(function(isValid) {
+    if (isValid) {
+      // user is good—just show the panel
+      boost.chatPanel.show();
+    } else {
+      // no valid session → go to SAML
       window.location.replace(buildRedirectUrl());
     }
   });
 }
 
-const boostMaybe = window.boostInit(TENANT);
-
 function attachChatEvents(boost) {
-  boost.chatPanel.addEventListener("chatPanelOpened", ensureLoggedIn);
+  // listen for the moment you get your session ID
+  listenForSession(boost);
 
-  boost.chatPanel.addEventListener("setFilterValue", function (ev) {
-    const v = ev.detail.filterValue;
-    boost.chatPanel.setFilterValues(v);
-    setTimeout(function () {
-      boost.chatPanel.setFilterValues(v);
-    }, 500);
+  // when user clicks “open chat,” check then show or redirect
+  boost.chatPanel.addEventListener("chatPanelOpened", function() {
+    handleChatOpen(boost);
   });
 
-  // Show panel immediately if user is already logged in
-  verifySession(function (isValid) {
+  // filter-value hack stays the same
+  boost.chatPanel.addEventListener("setFilterValue", function(ev) {
+    const v = ev.detail.filterValue;
+    boost.chatPanel.setFilterValues(v);
+    setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+  });
+
+  // if you already have a valid session on page‐load, show immediately
+  verifySession((isValid) => {
     if (isValid) {
       boost.chatPanel.show();
     }
   });
 }
 
+const boostMaybe = window.boostInit(TENANT);
 if (boostMaybe && typeof boostMaybe.then === "function") {
   boostMaybe.then(attachChatEvents);
 } else if (boostMaybe) {
   attachChatEvents(boostMaybe);
 }
 
-// Clean up query parameters if returning from SAML
+// clean up SAML params on return
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get("saml_code")) {
   urlParams.delete("saml_code");
@@ -118,6 +131,7 @@ if (urlParams.get("saml_code")) {
     window.location.hash;
   window.history.replaceState(null, "", cleanUrl);
 }
+
 
 
 
