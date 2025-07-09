@@ -30,110 +30,67 @@
 
 <body>
 
-
     <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-      const TENANT = "tss";
-const SAML_ENDPOINT = "https://tss.boost.ai/api/auth/saml2/";
-const VERIFY_ENDPOINT = SAML_ENDPOINT + "verify_front_session_id/";
 
-// (1) after SAML login, boost should emit your session/conversation ID
-function listenForSession(boost) {
-  boost.chatPanel.addEventListener("sessionInitialized", function(ev) {
-    window.localStorage.setItem(
-      "boostai.conversation.id",
-      ev.detail.sessionId
-    );
-  });
-}
+        (function () {
+            /* Boot the widget immediately — even before login */
+            const boost = window.boostInit("tss");
 
-function buildRedirectUrl() {
-  const query = new URLSearchParams({
-    sso: "",
-    RelayState: window.location.href,
-  });
-  const url = new URL(SAML_ENDPOINT);
-  url.search = query.toString();
-  return url;
-}
+            /* Local-storage flag to remember if the user has ever opened the panel */
+            const LS_AUTO_OPEN_KEY = "boostai.chatPanel.autoOpen"; // "true" | null
 
-function verifySession(callback) {
-  const existingConversationId = window.localStorage.getItem(
-    "boostai.conversation.id"
-  );
+            /* Helper: build the SSO redirect URL */
+            function buildSsoUrl() {
+                const qs = new URLSearchParams({
+                    sso: "",
+                    RelayState: window.location.href,
+                });
+                const url = new URL("https://tss.boost.ai/api/auth/saml2/");
+                url.search = qs.toString();
+                return url.toString();
+            }
 
-  if (!existingConversationId) {
-    callback(false);
-    return;
-  }
+            /* Fires every time the user opens the chat panel */
+            boost.chatPanel.addEventListener("chatPanelOpened", () => {
+                /* Remember that this user clicked the panel at least once */
+                localStorage.setItem(LS_AUTO_OPEN_KEY, "true");
 
-  fetch(VERIFY_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json; charset=UTF-8" },
-    body: JSON.stringify({ conversation_id: existingConversationId }),
-  })
-    .then((res) => callback(res.status !== 403))
-    .catch(() => callback(false));
-}
+                /* Kick off (or verify) SSO only after the panel is opened */
+                const query = new URLSearchParams(location.search);
+                if (query.get("saml_code")) return; // already authenticated
 
-// (2) enforce-then-open vs. redirect
-function handleChatOpen(boost) {
-  verifySession(function(isValid) {
-    if (isValid) {
-      // user is good—just show the panel
-      boost.chatPanel.show();
-    } else {
-      // no valid session → go to SAML
-      window.location.replace(buildRedirectUrl());
-    }
-  });
-}
+                const conversationId = localStorage.getItem("boostai.conversation.id");
 
-function attachChatEvents(boost) {
-  // listen for the moment you get your session ID
-  listenForSession(boost);
+                if (conversationId) {
+                    /* Verify existing session */
+                    fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        body: JSON.stringify({ conversation_id: conversationId }),
+                    }).then((res) => {
+                        if (res.status === 403) location.replace(buildSsoUrl());
+                        /* else → valid session, stay on page */
+                    });
+                } else {
+                    /* No stored session: start SSO flow */
+                    location.replace(buildSsoUrl());
+                }
+            });
 
-  // when user clicks “open chat,” check then show or redirect
-  boost.chatPanel.addEventListener("chatPanelOpened", function() {
-    handleChatOpen(boost);
-  });
+            /* Auto-open the panel ONLY if the user has opened it before */
+            if (localStorage.getItem(LS_AUTO_OPEN_KEY) === "true") {
+                boost.chatPanel.show();
+            }
 
-  // filter-value hack stays the same
-  boost.chatPanel.addEventListener("setFilterValue", function(ev) {
-    const v = ev.detail.filterValue;
-    boost.chatPanel.setFilterValues(v);
-    setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
-  });
-
-  // if you already have a valid session on page‐load, show immediately
-  verifySession((isValid) => {
-    if (isValid) {
-      boost.chatPanel.show();
-    }
-  });
-}
-
-const boostMaybe = window.boostInit(TENANT);
-if (boostMaybe && typeof boostMaybe.then === "function") {
-  boostMaybe.then(attachChatEvents);
-} else if (boostMaybe) {
-  attachChatEvents(boostMaybe);
-}
-
-// clean up SAML params on return
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("saml_code")) {
-  urlParams.delete("saml_code");
-  urlParams.delete("RelayState");
-  const cleanUrl =
-    window.location.pathname +
-    (urlParams.toString() ? "?" + urlParams.toString() : "") +
-    window.location.hash;
-  window.history.replaceState(null, "", cleanUrl);
-}
-
-
-
+            /* Keep the existing filter-sync handler */
+            boost.chatPanel.addEventListener("setFilterValue", (ev) => {
+                const value = ev.detail.filterValue;
+                boost.chatPanel.setFilterValues(value);                // immediate
+                setTimeout(() => boost.chatPanel.setFilterValues(value), 500); // 500 ms later
+            });
+        })();
+    </script>
 
 
 
