@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Chat Panel for coupa</title>
+    <title>Chat Panel for Coupa</title>
 
     <style>
         body {
@@ -15,7 +15,6 @@
             justify-content: flex-end;
             align-items: flex-end;
             padding: 0px;
-            /* Adjust as needed */
         }
 
         .chat-icon {
@@ -23,7 +22,6 @@
             bottom: 0;
             right: 0;
             margin: 10px;
-            /* Optional spacing */
         }
     </style>
 </head>
@@ -31,7 +29,7 @@
 <body>
 
     <!-- Drop-in script: panel stays closed unless user is already logged in (saml_code present) -->
-    <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+    <script src="https://chatPanel/chatPanel.js
     <script>
         (function () {
             const boost = window.boostInit("tss");
@@ -52,10 +50,13 @@
 
             /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
             boost.chatPanel.addEventListener("chatPanelOpened", () => {
-                if (hasSaml()) return;                       // already logged in → nothing to do
+                if (hasSaml()) return; // already logged in → nothing to do
 
                 const convId = localStorage.getItem(CONV_KEY);
-                if (!convId) {                              // no session yet → start SSO
+                const ssoAttempted = sessionStorage.getItem("ssoAttempted");
+
+                if (!convId && !ssoAttempted) {
+                    sessionStorage.setItem("ssoAttempted", "true");
                     redirectToSso();
                     return;
                 }
@@ -65,8 +66,9 @@
                     headers: { "Content-Type": "application/json; charset=UTF-8" },
                     body: JSON.stringify({ conversation_id: convId })
                 }).then(res => {
-                    if (res.status === 403) {                 // invalid session → clear & retry
+                    if (res.status === 403) {
                         localStorage.removeItem(CONV_KEY);
+                        sessionStorage.removeItem("ssoAttempted");
                         redirectToSso();
                     }
                 });
@@ -81,14 +83,10 @@
 
             /* ---------- auto-open panel only if SSO already completed ---------- */
             if (hasSaml()) {
-                boost.chatPanel.show();                     // panel opens automatically
+                boost.chatPanel.show(); // panel opens automatically
             }
         })();
     </script>
-
-
-
-
 
 </body>
 
