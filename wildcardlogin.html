@@ -30,71 +30,65 @@
 
 <body>
 
+    <!-- Drop-in script: panel stays closed unless user is already logged in (saml_code present) -->
     <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
-
         (function () {
-            /* Boot the widget immediately — even before login */
             const boost = window.boostInit("tss");
+            const CONV_KEY = "boostai.conversation.id";
 
-            /* Local-storage flag to remember if the user has ever opened the panel */
-            const LS_AUTO_OPEN_KEY = "boostai.chatPanel.autoOpen"; // "true" | null
+            /* ---------- helpers ---------- */
+            const hasSaml = () =>
+                new URLSearchParams(location.search).has("saml_code");
 
-            /* Helper: build the SSO redirect URL */
-            function buildSsoUrl() {
-                const qs = new URLSearchParams({
-                    sso: "",
-                    RelayState: window.location.href,
-                });
+            const ssoUrl = () => {
+                const qs = new URLSearchParams({ sso: "", RelayState: location.href });
                 const url = new URL("https://tss.boost.ai/api/auth/saml2/");
                 url.search = qs.toString();
                 return url.toString();
-            }
+            };
 
-            /* Fires every time the user opens the chat panel */
+            const redirectToSso = () => location.replace(ssoUrl());
+
+            /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
             boost.chatPanel.addEventListener("chatPanelOpened", () => {
-                /* Remember that this user clicked the panel at least once */
-                localStorage.setItem(LS_AUTO_OPEN_KEY, "true");
+                if (hasSaml()) return;                       // already logged in → nothing to do
 
-                /* Kick off (or verify) SSO only after the panel is opened */
-                const query = new URLSearchParams(location.search);
-                if (query.get("saml_code")) return; // already authenticated
-
-                const conversationId = localStorage.getItem("boostai.conversation.id");
-
-                if (conversationId) {
-                    /* Verify existing session */
-                    fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json; charset=UTF-8" },
-                        body: JSON.stringify({ conversation_id: conversationId }),
-                    }).then((res) => {
-                        if (res.status === 403) location.replace(buildSsoUrl());
-                        /* else → valid session, stay on page */
-                    });
-                } else {
-                    /* No stored session: start SSO flow */
-                    location.replace(buildSsoUrl());
+                const convId = localStorage.getItem(CONV_KEY);
+                if (!convId) {                              // no session yet → start SSO
+                    redirectToSso();
+                    return;
                 }
+
+                fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    body: JSON.stringify({ conversation_id: convId })
+                }).then(res => {
+                    if (res.status === 403) {                 // invalid session → clear & retry
+                        localStorage.removeItem(CONV_KEY);
+                        redirectToSso();
+                    }
+                });
             });
 
-            /* Auto-open the panel ONLY if the user has opened it before */
-            if (localStorage.getItem(LS_AUTO_OPEN_KEY) === "true") {
-                boost.chatPanel.show();
+            /* ---------- filter-sync handler (unchanged) ---------- */
+            boost.chatPanel.addEventListener("setFilterValue", ev => {
+                const v = ev.detail.filterValue;
+                boost.chatPanel.setFilterValues(v);
+                setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+            });
+
+            /* ---------- auto-open panel only if SSO already completed ---------- */
+            if (hasSaml()) {
+                boost.chatPanel.show();                     // panel opens automatically
             }
-
-            /* Keep the existing filter-sync handler */
-            boost.chatPanel.addEventListener("setFilterValue", (ev) => {
-                const value = ev.detail.filterValue;
-                boost.chatPanel.setFilterValues(value);                // immediate
-                setTimeout(() => boost.chatPanel.setFilterValues(value), 500); // 500 ms later
-            });
         })();
     </script>
 
 
 
-    </script>
+
 
 </body>
 
