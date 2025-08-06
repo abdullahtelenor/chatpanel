@@ -123,18 +123,42 @@
                 if (badge) badge.style.display = 'none';
             }
  
-            // Helper: Detect ALL messages except user
-            boost.chatPanel.addEventListener('message', function(ev) {
-                const msg = ev.detail;
-                // Play sound & show badge for any message NOT from user
-                if (!msg.senderType || msg.senderType !== 'user') {
-                    notificationSound.play();
-                    showChatBadge();
+            // Universal message event handler
+            let firstLogDone = false;
+            function universalMessageHandler(msg) {
+                // Only log the first incoming message (for debugging/verification)
+                if (!firstLogDone) {
+                    console.log("First incoming message event:", msg);
+                    firstLogDone = true;
                 }
-                // Optional: Hide badge when user sends message
-                if (msg.senderType && msg.senderType === 'user') {
+                // Handle possible sender/user detection
+                // Try typical field names:
+                // 1. senderType (common in Boost.ai)
+                // 2. from (sometimes used)
+                // 3. isBot (true/false)
+                // 4. role (sometimes "user", "agent", etc.)
+ 
+                let isFromUser = false;
+                if (msg.senderType && msg.senderType.toLowerCase() === 'user') isFromUser = true;
+                if (msg.from && msg.from.toLowerCase() === 'user') isFromUser = true;
+                if (msg.role && msg.role.toLowerCase() === 'user') isFromUser = true;
+ 
+                // If clearly marked as user message, hide badge
+                if (isFromUser) {
                     hideChatBadge();
+                    return;
                 }
+ 
+                // Otherwise, treat as bot/agent/other side, play sound + badge
+                notificationSound.play();
+                showChatBadge();
+            }
+ 
+            // Listen for likely message event names
+            ['message', 'newMessage', 'chatPanelMessage'].forEach(evtName => {
+                boost.chatPanel.addEventListener(evtName, function(ev) {
+                    if (ev && ev.detail) universalMessageHandler(ev.detail);
+                });
             });
  
             // Hide badge when user opens chat
