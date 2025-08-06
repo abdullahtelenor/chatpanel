@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="nb">
- 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Chat Panel for People Portal</title>
- 
-    <style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Chat Panel for People Portal</title>
+<style>
         body {
             margin: 0;
             overflow: hidden;
@@ -16,24 +14,16 @@
             align-items: flex-end;
             padding: 0px;
         }
- 
-        .chat-icon {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            margin: 10px;
-        }
-    </style>
+</style>
 </head>
- 
 <body>
- 
-    <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-    <script>
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
         (function () {
             const boost = window.boostInit("tss");
             const CONV_KEY = "boostai.conversation.id";
  
+            // --- SSO logic ---
             const hasSaml = () =>
                 new URLSearchParams(location.search).has("saml_code");
  
@@ -45,68 +35,7 @@
             };
  
             const redirectToSso = () => location.replace(ssoUrl());
-
-            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
  
-    // Attach badge to launcher when DOM is ready and when chat panel is loaded
-    function attachBadgeToLauncher() {
-        let launcher = document.querySelector('.boost-chat-panel-launcher');
-        if (!launcher) {
-            setTimeout(attachBadgeToLauncher, 500);
-            return;
-        }
-        let badge = launcher.querySelector('.chat-badge');
-        if (!badge) {
-            badge = document.createElement('div');
-            badge.className = 'chat-badge';
-            badge.style.position = 'absolute';
-            badge.style.top = '0px';
-            badge.style.right = '0px';
-            badge.style.width = '18px';
-            badge.style.height = '18px';
-            badge.style.background = 'red';
-            badge.style.borderRadius = '50%';
-            badge.style.zIndex = '10';
-            badge.style.display = 'none';
-            badge.style.alignItems = 'center';
-            badge.style.justifyContent = 'center';
-            badge.style.color = 'white';
-            badge.style.fontSize = '12px';
-            badge.style.fontWeight = 'bold';
-            badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-            badge.textContent = '!';
-            if (getComputedStyle(launcher).position === 'static') {
-                launcher.style.position = 'relative';
-            }
-            launcher.appendChild(badge);
-        }
-    }
-    attachBadgeToLauncher();
- 
-    function showChatBadge() {
-        let launcher = document.querySelector('.boost-chat-panel-launcher');
-        if (!launcher) return;
-        let badge = launcher.querySelector('.chat-badge');
-        if (badge) badge.style.display = 'flex';
-    }
- 
-    function hideChatBadge() {
-        let launcher = document.querySelector('.boost-chat-panel-launcher');
-        if (!launcher) return;
-        let badge = launcher.querySelector('.chat-badge');
-        if (badge) badge.style.display = 'none';
-    }
- 
-    boost.chatPanel.addEventListener('messageReceived', function(ev) {
-        notificationSound.play();
-        showChatBadge();
-    });
-    boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
-    boost.chatPanel.addEventListener("messageSent", hideChatBadge);
-
-         
- 
-            /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
             boost.chatPanel.addEventListener("chatPanelOpened", () => {
                 if (hasSaml()) return; // already logged in → nothing to do
  
@@ -132,7 +61,6 @@
                 });
             });
  
-            // ✅ Reset SSO attempt when chat is closed
             boost.chatPanel.addEventListener("chatPanelClosed", () => {
                 sessionStorage.removeItem("ssoAttempted");
             });
@@ -143,46 +71,77 @@
                 setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
             });
  
-            /* auto-open panel only if SSO already completed */
             if (hasSaml()) {
                 boost.chatPanel.show();
             }
  
-            // -----------------------------------------
-            // Notification Sound on Message Received
-            // -----------------------------------------
-            // URL for public notification sound
-           const NOTIF_SOUND_URL = "https://orangefreesounds.com/wp-content/uploads/2022/06/Simple-notification-sound.mp3";
-           
-           // Listen for incoming messages
-           boost.chatPanel.addEventListener("messageReceived", (event) => {
-               const msg = event.detail;
-               console.log("New bot message:", msg);
-       
-               // Play the shared public-domain sound
-               const audio = new Audio(NOTIF_SOUND_URL);
-               audio.play().catch(err => console.warn("Audio blocked:", err));
-       
-               // Add notification badge to chat icon
-               const chatIcon = document.querySelector("#chat-icon");
-               if (chatIcon && !chatIcon.classList.contains("has-notification")) {
-                   chatIcon.classList.add("has-notification");
-               }
-            
-           });
-           
-           // Clear notification badge when panel is opened
-           boost.chatPanel.addEventListener("chatPanelOpened", () => {
-               const chatIcon = document.querySelector("#chat-icon");
-               if (chatIcon) {
-                   chatIcon.classList.remove("has-notification");
-               }
-           });
-
+            // --- Notification Badge & Sound ---
+ 
+            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
+ 
+            // Wait for chat launcher, attach badge
+            function attachBadgeToLauncher() {
+                // The launcher is usually a button with class 'boost-chat-panel-launcher'
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) {
+                    setTimeout(attachBadgeToLauncher, 500); // Try again in 0.5s
+                    return;
+                }
+                let badge = launcher.querySelector('.chat-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'chat-badge';
+                    badge.style.position = 'absolute';
+                    badge.style.top = '0px';
+                    badge.style.right = '0px';
+                    badge.style.width = '18px';
+                    badge.style.height = '18px';
+                    badge.style.background = 'red';
+                    badge.style.borderRadius = '50%';
+                    badge.style.zIndex = '10';
+                    badge.style.display = 'none';
+                    badge.style.alignItems = 'center';
+                    badge.style.justifyContent = 'center';
+                    badge.style.color = 'white';
+                    badge.style.fontSize = '12px';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                    badge.textContent = '!';
+                    // Make launcher position:relative if needed
+                    if (getComputedStyle(launcher).position === 'static') {
+                        launcher.style.position = 'relative';
+                    }
+                    launcher.appendChild(badge);
+                }
+            }
+            attachBadgeToLauncher();
+ 
+            // Show badge
+            function showChatBadge() {
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) return;
+                let badge = launcher.querySelector('.chat-badge');
+                if (badge) badge.style.display = 'flex';
+            }
+            // Hide badge
+            function hideChatBadge() {
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) return;
+                let badge = launcher.querySelector('.chat-badge');
+                if (badge) badge.style.display = 'none';
+            }
+ 
+            // Play sound and show badge for ANY inbound message
+            boost.chatPanel.addEventListener('messageReceived', function(ev) {
+                notificationSound.play();
+                showChatBadge();
+            });
+            // Hide badge when user opens chat
+            boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
+            // Hide badge when user sends message
+            boost.chatPanel.addEventListener("messageSent", hideChatBadge);
  
         })();
-    </script>
- 
+</script>
 </body>
- 
 </html>
