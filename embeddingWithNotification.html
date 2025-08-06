@@ -86,7 +86,7 @@
             }
  
             // -----------------------------------------
-            // Notification Sound & Badge for Agent Reply
+            // Notification Sound & Badge for Any Reply
             // -----------------------------------------
  
             // Notification sound
@@ -123,14 +123,11 @@
                 if (badge) badge.style.display = 'none';
             }
  
-            // Helper: Detect agent messages
+            // Helper: Detect ALL messages except user
             boost.chatPanel.addEventListener('message', function(ev) {
-                // See what the event contains; adjust as needed!
-                // console.log(ev.detail);
-                // Try typical fields:
                 const msg = ev.detail;
-                // Look for human agent reply:
-                if (msg.senderType && msg.senderType === 'human_agent') {
+                // Play sound & show badge for any message NOT from user
+                if (!msg.senderType || msg.senderType !== 'user') {
                     notificationSound.play();
                     showChatBadge();
                 }
