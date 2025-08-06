@@ -2,10 +2,11 @@
 <html lang="nb">
  
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Chat Panel for People Portal</title>
-<style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for People Portal</title>
+ 
+    <style>
         body {
             margin: 0;
             overflow: hidden;
@@ -15,18 +16,20 @@
             align-items: flex-end;
             padding: 0px;
         }
+ 
         .chat-icon {
             position: fixed;
             bottom: 0;
             right: 0;
             margin: 10px;
         }
-</style>
+    </style>
 </head>
  
 <body>
-<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
+ 
+    <script src="https://chatPanel/chatPanel.js
+    <script>
         (function () {
             const boost = window.boostInit("tss");
             const CONV_KEY = "boostai.conversation.id";
@@ -69,7 +72,7 @@
                 });
             });
  
-            // ✅ NEW: Reset SSO attempt when chat is closed
+            // ✅ Reset SSO attempt when chat is closed
             boost.chatPanel.addEventListener("chatPanelClosed", () => {
                 sessionStorage.removeItem("ssoAttempted");
             });
@@ -86,87 +89,19 @@
             }
  
             // -----------------------------------------
-            // Notification Sound & Badge for Any Reply
+            // Notification Sound on Message Received
             // -----------------------------------------
+            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
  
-            // Notification sound
-            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3'); // Free short sound
- 
-            // Function to show badge
-            function showChatBadge() {
-                let badge = document.getElementById('chat-badge');
-                if (!badge) {
-                    badge = document.createElement('div');
-                    badge.id = 'chat-badge';
-                    badge.style.position = 'fixed';
-                    badge.style.bottom = '70px';
-                    badge.style.right = '30px';
-                    badge.style.width = '18px';
-                    badge.style.height = '18px';
-                    badge.style.background = 'red';
-                    badge.style.borderRadius = '50%';
-                    badge.style.zIndex = '9999';
-                    badge.style.display = 'flex';
-                    badge.style.alignItems = 'center';
-                    badge.style.justifyContent = 'center';
-                    badge.style.color = 'white';
-                    badge.style.fontSize = '12px';
-                    badge.textContent = '!';
-                    document.body.appendChild(badge);
-                } else {
-                    badge.style.display = 'flex';
+            boost.chatPanel.addEventListener("messageReceived", function (event) {
+                if (event && event.detail) {
+                    notificationSound.play();
                 }
-            }
-            // Function to hide badge
-            function hideChatBadge() {
-                let badge = document.getElementById('chat-badge');
-                if (badge) badge.style.display = 'none';
-            }
- 
-            // Universal message event handler
-            let firstLogDone = false;
-            function universalMessageHandler(msg) {
-                // Only log the first incoming message (for debugging/verification)
-                if (!firstLogDone) {
-                    console.log("First incoming message event:", msg);
-                    firstLogDone = true;
-                }
-                // Handle possible sender/user detection
-                // Try typical field names:
-                // 1. senderType (common in Boost.ai)
-                // 2. from (sometimes used)
-                // 3. isBot (true/false)
-                // 4. role (sometimes "user", "agent", etc.)
- 
-                let isFromUser = false;
-                if (msg.senderType && msg.senderType.toLowerCase() === 'user') isFromUser = true;
-                if (msg.from && msg.from.toLowerCase() === 'user') isFromUser = true;
-                if (msg.role && msg.role.toLowerCase() === 'user') isFromUser = true;
- 
-                // If clearly marked as user message, hide badge
-                if (isFromUser) {
-                    hideChatBadge();
-                    return;
-                }
- 
-                // Otherwise, treat as bot/agent/other side, play sound + badge
-                notificationSound.play();
-                showChatBadge();
-            }
- 
-            // Listen for likely message event names
-            ['message', 'newMessage', 'chatPanelMessage'].forEach(evtName => {
-                boost.chatPanel.addEventListener(evtName, function(ev) {
-                    if (ev && ev.detail) universalMessageHandler(ev.detail);
-                });
-            });
- 
-            // Hide badge when user opens chat
-            boost.chatPanel.addEventListener("chatPanelOpened", () => {
-                hideChatBadge();
             });
  
         })();
-</script>
+    </script>
+ 
 </body>
+ 
 </html>
