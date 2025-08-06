@@ -97,19 +97,18 @@
            // Listen for incoming messages
            boost.chatPanel.addEventListener("messageReceived", (event) => {
                const msg = event.detail;
-               if (msg?.author === "bot") {
-                   console.log("New bot message:", msg);
-           
-                   // Play the shared public-domain sound
-                   const audio = new Audio(NOTIF_SOUND_URL);
-                   audio.play().catch(err => console.warn("Audio blocked:", err));
-           
-                   // Add notification badge to chat icon
-                   const chatIcon = document.querySelector("#chat-icon");
-                   if (chatIcon && !chatIcon.classList.contains("has-notification")) {
-                       chatIcon.classList.add("has-notification");
-                   }
+               console.log("New bot message:", msg);
+       
+               // Play the shared public-domain sound
+               const audio = new Audio(NOTIF_SOUND_URL);
+               audio.play().catch(err => console.warn("Audio blocked:", err));
+       
+               // Add notification badge to chat icon
+               const chatIcon = document.querySelector("#chat-icon");
+               if (chatIcon && !chatIcon.classList.contains("has-notification")) {
+                   chatIcon.classList.add("has-notification");
                }
+            
            });
            
            // Clear notification badge when panel is opened
