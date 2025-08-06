@@ -45,6 +45,52 @@
             };
  
             const redirectToSso = () => location.replace(ssoUrl());
+
+            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
+ 
+            function showChatBadge() {
+                let badge = document.getElementById('chat-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.id = 'chat-badge';
+                    badge.style.position = 'fixed';
+                    badge.style.bottom = '70px';
+                    badge.style.right = '30px';
+                    badge.style.width = '18px';
+                    badge.style.height = '18px';
+                    badge.style.background = 'red';
+                    badge.style.borderRadius = '50%';
+                    badge.style.zIndex = '9999';
+                    badge.style.display = 'flex';
+                    badge.style.alignItems = 'center';
+                    badge.style.justifyContent = 'center';
+                    badge.style.color = 'white';
+                    badge.style.fontSize = '12px';
+                    badge.textContent = '!';
+                    document.body.appendChild(badge);
+                } else {
+                    badge.style.display = 'flex';
+                }
+            }
+            function hideChatBadge() {
+                let badge = document.getElementById('chat-badge');
+                if (badge) badge.style.display = 'none';
+            }
+ 
+            // Listen for messageReceived (works for both VA and human agent)
+            boost.chatPanel.addEventListener('messageReceived', function(ev) {
+                // Always play sound & show badge when a new message is received (not user-sent)
+                notificationSound.play();
+                showChatBadge();
+            });
+ 
+            // Hide badge when user opens chat (optional)
+            boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
+ 
+            // Also hide badge when user sends a message
+            boost.chatPanel.addEventListener("messageSent", hideChatBadge);
+
+         
  
             /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
             boost.chatPanel.addEventListener("chatPanelOpened", () => {
