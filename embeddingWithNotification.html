@@ -91,13 +91,35 @@
             // -----------------------------------------
             // Notification Sound on Message Received
             // -----------------------------------------
-            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
- 
-            boost.chatPanel.addEventListener("messageReceived", function (event) {
-                if (event && event.detail) {
-                    notificationSound.play();
-                }
-            });
+            // URL for public notification sound
+           const NOTIF_SOUND_URL = "https://orangefreesounds.com/wp-content/uploads/2022/06/Simple-notification-sound.mp3";
+           
+           // Listen for incoming messages
+           boost.chatPanel.addEventListener("messageReceived", (event) => {
+               const msg = event.detail;
+               if (msg?.author === "bot") {
+                   console.log("New bot message:", msg);
+           
+                   // Play the shared public-domain sound
+                   const audio = new Audio(NOTIF_SOUND_URL);
+                   audio.play().catch(err => console.warn("Audio blocked:", err));
+           
+                   // Add notification badge to chat icon
+                   const chatIcon = document.querySelector("#chat-icon");
+                   if (chatIcon && !chatIcon.classList.contains("has-notification")) {
+                       chatIcon.classList.add("has-notification");
+                   }
+               }
+           });
+           
+           // Clear notification badge when panel is opened
+           boost.chatPanel.addEventListener("chatPanelOpened", () => {
+               const chatIcon = document.querySelector("#chat-icon");
+               if (chatIcon) {
+                   chatIcon.classList.remove("has-notification");
+               }
+           });
+
  
         })();
     </script>
