@@ -49,29 +49,32 @@
             const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
  
             function showChatBadge() {
-                let badge = document.getElementById('chat-badge');
-                if (!badge) {
-                    badge = document.createElement('div');
-                    badge.id = 'chat-badge';
-                    badge.style.position = 'fixed';
-                    badge.style.bottom = '70px';
-                    badge.style.right = '30px';
-                    badge.style.width = '18px';
-                    badge.style.height = '18px';
-                    badge.style.background = 'red';
-                    badge.style.borderRadius = '50%';
-                    badge.style.zIndex = '9999';
-                    badge.style.display = 'flex';
-                    badge.style.alignItems = 'center';
-                    badge.style.justifyContent = 'center';
-                    badge.style.color = 'white';
-                    badge.style.fontSize = '12px';
-                    badge.textContent = '!';
-                    document.body.appendChild(badge);
-                } else {
-                    badge.style.display = 'flex';
-                }
+            let badge = document.getElementById('chat-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'chat-badge';
+                // Position the badge in lower right but shifted further left and up
+                badge.style.position = 'fixed';
+                badge.style.bottom = '110px'; // Move higher so it is above the chat panel
+                badge.style.right = '90px';   // Move left so it is not behind the panel
+                badge.style.width = '24px';
+                badge.style.height = '24px';
+                badge.style.background = 'red';
+                badge.style.borderRadius = '50%';
+                badge.style.zIndex = '2147483647'; // Maximum z-index to be on top
+                badge.style.display = 'flex';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
+                badge.style.color = 'white';
+                badge.style.fontSize = '16px';
+                badge.style.fontWeight = 'bold';
+                badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                badge.textContent = '!';
+                document.body.appendChild(badge);
+            } else {
+                badge.style.display = 'flex';
             }
+        }
             function hideChatBadge() {
                 let badge = document.getElementById('chat-badge');
                 if (badge) badge.style.display = 'none';
