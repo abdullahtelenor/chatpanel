@@ -25,48 +25,62 @@
 
 
             // ---- Notification Sound & Badge ----
-            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
+           const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
  
-            function showChatBadge() {
-                let badge = document.getElementById('chat-badge');
+            // Attach badge to launcher when DOM is ready and when chat panel is loaded
+            function attachBadgeToLauncher() {
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) {
+                    setTimeout(attachBadgeToLauncher, 500);
+                    return;
+                }
+                let badge = launcher.querySelector('.chat-badge');
                 if (!badge) {
                     badge = document.createElement('div');
-                    badge.id = 'chat-badge';
-                    badge.style.position = 'fixed';
-                    badge.style.bottom = '70px';
-                    badge.style.right = '30px';
+                    badge.className = 'chat-badge';
+                    badge.style.position = 'absolute';
+                    badge.style.top = '0px';
+                    badge.style.right = '0px';
                     badge.style.width = '18px';
                     badge.style.height = '18px';
                     badge.style.background = 'red';
                     badge.style.borderRadius = '50%';
-                    badge.style.zIndex = '9999';
-                    badge.style.display = 'flex';
+                    badge.style.zIndex = '10';
+                    badge.style.display = 'none';
                     badge.style.alignItems = 'center';
                     badge.style.justifyContent = 'center';
                     badge.style.color = 'white';
                     badge.style.fontSize = '12px';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
                     badge.textContent = '!';
-                    document.body.appendChild(badge);
-                } else {
-                    badge.style.display = 'flex';
+                    if (getComputedStyle(launcher).position === 'static') {
+                        launcher.style.position = 'relative';
+                    }
+                    launcher.appendChild(badge);
                 }
             }
+            attachBadgeToLauncher();
+         
+            function showChatBadge() {
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) return;
+                let badge = launcher.querySelector('.chat-badge');
+                if (badge) badge.style.display = 'flex';
+            }
+         
             function hideChatBadge() {
-                let badge = document.getElementById('chat-badge');
+                let launcher = document.querySelector('.boost-chat-panel-launcher');
+                if (!launcher) return;
+                let badge = launcher.querySelector('.chat-badge');
                 if (badge) badge.style.display = 'none';
             }
- 
-            // Listen for messageReceived (works for both VA and human agent)
+         
             boost.chatPanel.addEventListener('messageReceived', function(ev) {
-                // Always play sound & show badge when a new message is received (not user-sent)
                 notificationSound.play();
                 showChatBadge();
             });
- 
-            // Hide badge when user opens chat (optional)
             boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
- 
-            // Also hide badge when user sends a message
             boost.chatPanel.addEventListener("messageSent", hideChatBadge);
  
             // --- SSO logic ---
