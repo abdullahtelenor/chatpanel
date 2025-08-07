@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nb">
+ 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -16,60 +17,14 @@
         }
 </style>
 </head>
+ 
 <body>
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
         (function () {
             const boost = window.boostInit("tss");
             const CONV_KEY = "boostai.conversation.id";
-
-
-            // ---- Notification Sound & Badge ----
-            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
  
-            function showChatBadge() {
-                let badge = document.getElementById('chat-badge');
-                if (!badge) {
-                    badge = document.createElement('div');
-                    badge.id = 'chat-badge';
-                    badge.style.position = 'fixed';
-                    badge.style.bottom = '70px';
-                    badge.style.right = '30px';
-                    badge.style.width = '18px';
-                    badge.style.height = '18px';
-                    badge.style.background = 'red';
-                    badge.style.borderRadius = '50%';
-                    badge.style.zIndex = '9999';
-                    badge.style.display = 'flex';
-                    badge.style.alignItems = 'center';
-                    badge.style.justifyContent = 'center';
-                    badge.style.color = 'white';
-                    badge.style.fontSize = '12px';
-                    badge.textContent = '!';
-                    document.body.appendChild(badge);
-                } else {
-                    badge.style.display = 'flex';
-                }
-            }
-            function hideChatBadge() {
-                let badge = document.getElementById('chat-badge');
-                if (badge) badge.style.display = 'none';
-            }
- 
-            // Listen for messageReceived (works for both VA and human agent)
-            boost.chatPanel.addEventListener('messageReceived', function(ev) {
-                // Always play sound & show badge when a new message is received (not user-sent)
-                notificationSound.play();
-                showChatBadge();
-            });
- 
-            // Hide badge when user opens chat (optional)
-            boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
- 
-            // Also hide badge when user sends a message
-            boost.chatPanel.addEventListener("messageSent", hideChatBadge);
- 
-            // --- SSO logic ---
             const hasSaml = () =>
                 new URLSearchParams(location.search).has("saml_code");
  
@@ -82,6 +37,7 @@
  
             const redirectToSso = () => location.replace(ssoUrl());
  
+            // SSO verify / redirect (runs only after user opens panel)
             boost.chatPanel.addEventListener("chatPanelOpened", () => {
                 if (hasSaml()) return; // already logged in → nothing to do
  
@@ -107,6 +63,7 @@
                 });
             });
  
+            // Reset SSO attempt when chat is closed
             boost.chatPanel.addEventListener("chatPanelClosed", () => {
                 sessionStorage.removeItem("ssoAttempted");
             });
@@ -117,13 +74,60 @@
                 setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
             });
  
+            // Auto-open panel only if SSO already completed
             if (hasSaml()) {
                 boost.chatPanel.show();
             }
  
-
-                
+            // -----------------------------------------
+            // Notification Sound & Badge for Any Reply
+            // -----------------------------------------
+            const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3'); // Short notification sound
+ 
+            function showChatBadge() {
+                let badge = document.getElementById('chat-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.id = 'chat-badge';
+                    badge.style.position = 'fixed';
+                    badge.style.bottom = '70px';
+                    badge.style.right = '30px';
+                    badge.style.width = '18px';
+                    badge.style.height = '18px';
+                    badge.style.background = 'red';
+                    badge.style.borderRadius = '50%';
+                    badge.style.zIndex = '9999';
+                    badge.style.display = 'flex';
+                    badge.style.alignItems = 'center';
+                    badge.style.justifyContent = 'center';
+                    badge.style.color = 'white';
+                    badge.style.fontSize = '12px';
+                    badge.textContent = '!';
+                    document.body.appendChild(badge);
+                } else {
+                    badge.style.display = 'flex';
+                }
+            }
+ 
+            function hideChatBadge() {
+                let badge = document.getElementById('chat-badge');
+                if (badge) badge.style.display = 'none';
+            }
+ 
+            // Play sound and show badge for ANY inbound message (from VA/human agent)
+            boost.chatPanel.addEventListener('messageReceived', function(ev) {
+                notificationSound.play();
+                showChatBadge();
+            });
+ 
+            // Hide badge when user opens chat
+            boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
+ 
+            // Hide badge when user sends a message
+            boost.chatPanel.addEventListener("messageSent", hideChatBadge);
+ 
         })();
 </script>
 </body>
+ 
 </html>
