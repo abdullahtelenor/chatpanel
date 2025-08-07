@@ -78,13 +78,11 @@
             // --- Notification Badge & Sound ---
  
             const notificationSound = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12b8c1b9b4.mp3');
- 
-            // Wait for chat launcher, attach badge
+            // Attach badge to launcher when DOM is ready and when chat panel is loaded
             function attachBadgeToLauncher() {
-                // The launcher is usually a button with class 'boost-chat-panel-launcher'
                 let launcher = document.querySelector('.boost-chat-panel-launcher');
                 if (!launcher) {
-                    setTimeout(attachBadgeToLauncher, 500); // Try again in 0.5s
+                    setTimeout(attachBadgeToLauncher, 500);
                     return;
                 }
                 let badge = launcher.querySelector('.chat-badge');
@@ -107,7 +105,6 @@
                     badge.style.fontWeight = 'bold';
                     badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
                     badge.textContent = '!';
-                    // Make launcher position:relative if needed
                     if (getComputedStyle(launcher).position === 'static') {
                         launcher.style.position = 'relative';
                     }
@@ -115,32 +112,26 @@
                 }
             }
             attachBadgeToLauncher();
- 
-            // Show badge
             function showChatBadge() {
                 let launcher = document.querySelector('.boost-chat-panel-launcher');
                 if (!launcher) return;
                 let badge = launcher.querySelector('.chat-badge');
                 if (badge) badge.style.display = 'flex';
             }
-            // Hide badge
             function hideChatBadge() {
                 let launcher = document.querySelector('.boost-chat-panel-launcher');
                 if (!launcher) return;
                 let badge = launcher.querySelector('.chat-badge');
                 if (badge) badge.style.display = 'none';
             }
- 
-            // Play sound and show badge for ANY inbound message
             boost.chatPanel.addEventListener('messageReceived', function(ev) {
                 notificationSound.play();
                 showChatBadge();
             });
-            // Hide badge when user opens chat
             boost.chatPanel.addEventListener("chatPanelOpened", hideChatBadge);
-            // Hide badge when user sends message
             boost.chatPanel.addEventListener("messageSent", hideChatBadge);
- 
+
+                
         })();
 </script>
 </body>
