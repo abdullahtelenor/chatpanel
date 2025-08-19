@@ -45,7 +45,7 @@
 
             const ssoUrl = () => {
                 const qs = new URLSearchParams({ sso: "", RelayState: location.href });
-                const url = new URL("https://tss.boost.ai/api/auth/saml2/");
+                const url = new URL("https://tsstest.boost.ai/api/auth/saml2/");
                 url.search = qs.toString();
                 return url.toString();
             };
@@ -65,7 +65,7 @@
                     return;
                 }
 
-                fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+                fetch("https://tsstest.boost.ai/api/auth/saml2/verify_front_session_id/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json; charset=UTF-8" },
                     body: JSON.stringify({ conversation_id: convId })
