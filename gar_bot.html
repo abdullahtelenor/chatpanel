@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for coupa</title>
+     
+    <style>
+        body {
+             margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px; /* Adjust as needed */
+        }
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px; /* Optional spacing */
+        }
+    </style>
+</head>
+<body>
+
+
+ <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+    <script>
+        (function () {
+            const boost = window.boostInit("tss");
+            const CONV_KEY = "boostai.conversation.id";
+
+            const hasSaml = () =>
+                new URLSearchParams(location.search).has("saml_code");
+
+            const ssoUrl = () => {
+                const qs = new URLSearchParams({ sso: "", RelayState: location.href });
+                const url = new URL("https://tss.boost.ai/api/auth/saml2/");
+                url.search = qs.toString();
+                return url.toString();
+            };
+
+            const redirectToSso = () => location.replace(ssoUrl());
+
+            /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
+            boost.chatPanel.addEventListener("chatPanelOpened", () => {
+                if (hasSaml()) return; // already logged in → nothing to do
+
+                const convId = localStorage.getItem(CONV_KEY);
+                const ssoAttempted = sessionStorage.getItem("ssoAttempted");
+
+                if (!convId && !ssoAttempted) {
+                    sessionStorage.setItem("ssoAttempted", "true");
+                    redirectToSso();
+                    return;
+                }
+
+                fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    body: JSON.stringify({ conversation_id: convId })
+                }).then(res => {
+                    if (res.status === 403) {
+                        localStorage.removeItem(CONV_KEY);
+                        sessionStorage.removeItem("ssoAttempted");
+                        redirectToSso();
+                    }
+                });
+            });
+
+            // ✅ NEW: Reset SSO attempt when chat is closed
+            boost.chatPanel.addEventListener("chatPanelClosed", () => {
+                sessionStorage.removeItem("ssoAttempted");
+            });
+
+            
+      var boost = window.boostInit("tss",{
+  chatPanel: {
+    header: {
+      filters: {
+        filterValues: ["gar"]
+      }
+    },
+  }
+}); 
+
+             /* auto-open panel only if SSO already completed */
+            if (hasSaml()) {
+                boost.chatPanel.show();
+            }
+        })();
+    </script>
+
+
+</body>
+
+</html>
