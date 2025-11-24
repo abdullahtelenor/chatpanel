@@ -29,9 +29,13 @@
 
 <body>
 
-<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
   <script>
-      var boost = window.boostInit("tsstest", {
+    (function () {
+      const CONV_KEY = "boostai.conversation.id";
+
+      // Initialize Boost only once with config
+      const boost = window.boostInit("tss", {
         chatPanel: {
           header: {
             filters: {
@@ -40,69 +44,56 @@
           }
         }
       });
-</script> 
-  <!--
- <script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
-    <script>
-        (function () {
-            const boost = window.boostInit("tsstest");
-            const CONV_KEY = "boostai.conversation.id";
 
-            const hasSaml = () =>
-                new URLSearchParams(location.search).has("saml_code");
+      const hasSaml = () =>
+        new URLSearchParams(location.search).has("saml_code");
 
-            const ssoUrl = () => {
-                const qs = new URLSearchParams({ sso: "", RelayState: location.href });
-                const url = new URL("https://tsstest.boost.ai/api/auth/saml2/");
-                url.search = qs.toString();
-                return url.toString();
-            };
+      const ssoUrl = () => {
+        const qs = new URLSearchParams({ sso: "", RelayState: location.href });
+        const url = new URL("https://tss.boost.ai/api/auth/saml2/");
+        url.search = qs.toString();
+        return url.toString();
+      };
 
-            const redirectToSso = () => location.replace(ssoUrl());
+      const redirectToSso = () => location.replace(ssoUrl());
 
-            /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
-            boost.chatPanel.addEventListener("chatPanelOpened", () => {
-                if (hasSaml()) return; // already logged in → nothing to do
+      /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
+      boost.chatPanel.addEventListener("chatPanelOpened", () => {
+        if (hasSaml()) return; // already logged in → nothing to do
 
-                const convId = localStorage.getItem(CONV_KEY);
-                const ssoAttempted = sessionStorage.getItem("ssoAttempted");
+        const convId = localStorage.getItem(CONV_KEY);
+        const ssoAttempted = sessionStorage.getItem("ssoAttempted");
 
-                if (!convId && !ssoAttempted) {
-                    sessionStorage.setItem("ssoAttempted", "true");
-                    redirectToSso();
-                    return;
-                }
+        if (!convId && !ssoAttempted) {
+          sessionStorage.setItem("ssoAttempted", "true");
+          redirectToSso();
+          return;
+        }
 
-                fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json; charset=UTF-8" },
-                    body: JSON.stringify({ conversation_id: convId })
-                }).then(res => {
-                    if (res.status === 403) {
-                        localStorage.removeItem(CONV_KEY);
-                        sessionStorage.removeItem("ssoAttempted");
-                        redirectToSso();
-                    }
-                });
-            });
+        fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify({ conversation_id: convId })
+        }).then(res => {
+          if (res.status === 403) {
+            localStorage.removeItem(CONV_KEY);
+            sessionStorage.removeItem("ssoAttempted");
+            redirectToSso();
+          }
+        });
+      });
 
-            // ✅ NEW: Reset SSO attempt when chat is closed
-            boost.chatPanel.addEventListener("chatPanelClosed", () => {
-                sessionStorage.removeItem("ssoAttempted");
-            });
+      // ✅ Reset SSO attempt when chat is closed
+      boost.chatPanel.addEventListener("chatPanelClosed", () => {
+        sessionStorage.removeItem("ssoAttempted");
+      });
 
-            boost.chatPanel.addEventListener("setFilterValue", ev => {
-                const v = ev.detail.filterValue;
-                boost.chatPanel.setFilterValues(v);
-                setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
-            });
-
-            /* auto-open panel only if SSO already completed */
-            if (hasSaml()) {
-                boost.chatPanel.show();
-            }
-        })();
-    </script> -->
+      // ✅ Auto-open if already logged in
+      if (hasSaml()) {
+        boost.chatPanel.show();
+      }
+    })();
+  </script>
 </body>
 
 </html>
