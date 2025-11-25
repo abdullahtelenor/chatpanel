@@ -1,4 +1,26 @@
-<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<!DOCTYPE html>
+<html lang="nb">
+ 
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Chat Panel for People Portal</title>
+<style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+        }
+</style>
+</head>
+ 
+<body>
+  
+  <script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
   var boost = window.boostInit("tsstest");
 
@@ -19,5 +41,8 @@ boost.chatPanel.addEventListener("anonymizeConversations", (event) => {
  
   anonymizeConversations(action_id);
 });
+
+</body>
+  </html>
   
 </script>
