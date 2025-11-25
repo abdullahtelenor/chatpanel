@@ -1,0 +1,23 @@
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+  var boost = window.boostInit("tsstest");
+
+  function anonymizeConversations(action_id) {
+  const events = ["messageSent", "actionLinkClicked", "externalLinkClicked"];
+ 
+  events.forEach((eventName) => {
+    boost.chatPanel.addEventListener(eventName, () => {
+      boost.chatPanel.triggerAction(action_id);
+    });
+  });
+}
+ 
+// Initialize via custom event: `anonymizeConversations`
+boost.chatPanel.addEventListener("anonymizeConversations", (event) => {
+  const action_id = event?.detail?.action_id;
+  if (!action_id) return;
+ 
+  anonymizeConversations(action_id);
+});
+  
+</script>
