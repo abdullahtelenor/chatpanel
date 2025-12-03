@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP-App</title>
+  <style>
+    body {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.4);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+
+<script>
+(function () {
+  // Initialize Boost with only the required filter
+  const boost = window.boostInit("tss", {
+    chatPanel: {
+      header: {
+        filters: {
+          filterValues: ["ppapp"]
+        }
+      }
+    }
+  });
+
+  /* -----------------------------
+      TID LISTENER / HANDOFF
+     ----------------------------- */
+
+  // This function will be called by ServiceNow and will receive the TID value
+  window.sendTidToBoost = function (tid) {
+    console.log("Received TID from ServiceNow:", tid);
+
+    // Store the user ID inside Boost for personalisation / routing
+    try {
+      boost.setUser({
+        id: tid,
+        metadata: {
+          tid: tid
+        }
+      });
+    } catch (e) {
+      console.error("Failed to set user in Boost:", e);
+    }
+  };
+
+  /* --------------------------------------------
+      WHEN USER OPENS CHAT → REQUEST TID
+     -------------------------------------------- */
+
+  // This event fires when user clicks the chat icon
+  boost.chatPanel.addEventListener("chatPanelOpened", () => {
+    console.log("Chat panel opened → requesting TID from ServiceNow");
+
+    // Notify ServiceNow that the bot needs the user ID
+    // Your SN Dev will handle sending it back using sendTidToBoost(tid)
+    if (window.ServiceNowEventBus) {
+      window.ServiceNowEventBus.emit("REQUEST_TID_FOR_BOOST");
+    } else {
+      console.warn("ServiceNowEventBus not found - SN must expose it.");
+    }
+  });
+})();
+</script>
+</body>
+
+</html>
