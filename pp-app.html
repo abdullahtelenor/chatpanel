@@ -28,59 +28,37 @@
 
 <body>
 
-<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
-
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script> 
 <script>
-(function () {
-  // Initialize Boost with only the required filter
-  const boost = window.boostInit("tsstest", {
-    chatPanel: {
-      header: {
-        filters: {
-          filterValues: ["ppapp"]
+  (function () {
+    // ---------------------------------------------------------
+    // STEP A: Retrieve the ServiceNow User ID (TID)
+    // ---------------------------------------------------------
+    // Your ServiceNow developer must inject the user's ID here.
+    // If they render it server-side, it might look like: 
+    // const serviceNowTID = "${current_user.user_name}";
+    // Or if it's a global JS variable: window.NOW.user.userID;
+    
+    const serviceNowTID = "REPLACE_WITH_ACTUAL_SERVICENOW_TID"; 
+
+    // ---------------------------------------------------------
+    // STEP B: Initialize Boost with Custom Payload
+    // ---------------------------------------------------------
+    const boost = window.boostInit("tsstest", { 
+      chatPanel: {
+        header: {
+          filters: {
+            filterValues: ["ppapp"] 
+          }
+        },
+        // This sends the data to Boost.ai
+        customPayload: {
+          "tid": serviceNowTID
         }
       }
-    }
-  });
+    });
 
-  /* -----------------------------
-      TID LISTENER / HANDOFF
-     ----------------------------- */
-
-  // This function will be called by ServiceNow and will receive the TID value
-  window.sendTidToBoost = function (tid) {
-    console.log("Received TID from ServiceNow:", tid);
-
-    // Store the user ID inside Boost for personalisation / routing
-    try {
-      boost.setUser({
-        id: tid,
-        metadata: {
-          tid: tid
-        }
-      });
-    } catch (e) {
-      console.error("Failed to set user in Boost:", e);
-    }
-  };
-
-  /* --------------------------------------------
-      WHEN USER OPENS CHAT → REQUEST TID
-     -------------------------------------------- */
-
-  // This event fires when user clicks the chat icon
-  boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    console.log("Chat panel opened → requesting TID from ServiceNow");
-
-    // Notify ServiceNow that the bot needs the user ID
-    // Your SN Dev will handle sending it back using sendTidToBoost(tid)
-    if (window.ServiceNowEventBus) {
-      window.ServiceNowEventBus.emit("REQUEST_TID_FOR_BOOST");
-    } else {
-      console.warn("ServiceNowEventBus not found - SN must expose it.");
-    }
-  });
-})();
+  })();
 </script>
 </body>
 
