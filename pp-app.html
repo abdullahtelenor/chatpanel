@@ -28,38 +28,63 @@
 
 <body>
 
-<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script> 
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
   (function () {
+
     // ---------------------------------------------------------
-    // STEP A: Retrieve the ServiceNow User ID (TID)
+    // STEP A: Retrieve ServiceNow TID safely
     // ---------------------------------------------------------
-    // Your ServiceNow developer must inject the user's ID here.
-    // If they render it server-side, it might look like: 
-    // const serviceNowTID = "${current_user.user_name}";
-    // Or if it's a global JS variable: window.NOW.user.userID;
-    
-    const serviceNowTID = "REPLACE_WITH_ACTUAL_SERVICENOW_TID"; 
+    let serviceNowTID = null;
+
+    try {
+      // Example injection methods (use ONE of these in production):
+      // serviceNowTID = window.NOW?.user?.userID;
+      // serviceNowTID = "${current_user.user_name}";
+
+      serviceNowTID = "REPLACE_WITH_ACTUAL_SERVICENOW_TID";
+
+      // Normalize & validate
+      if (typeof serviceNowTID === "string") {
+        serviceNowTID = serviceNowTID.trim();
+      }
+
+      if (!serviceNowTID) {
+        console.warn("[Boost Embed] ServiceNow TID is missing or empty. Sending null.");
+        serviceNowTID = null;
+      } else {
+        console.info("[Boost Embed] ServiceNow TID detected:", serviceNowTID);
+      }
+
+    } catch (error) {
+      console.error("[Boost Embed] Failed to retrieve ServiceNow TID:", error);
+      serviceNowTID = null;
+    }
 
     // ---------------------------------------------------------
     // STEP B: Initialize Boost with Custom Payload
     // ---------------------------------------------------------
-    const boost = window.boostInit("tsstest", { 
-      chatPanel: {
-        header: {
-          filters: {
-            filterValues: ["ppapp"] 
+    try {
+      window.boostInit("tsstest", {
+        chatPanel: {
+          header: {
+            filters: {
+              filterValues: ["ppapp"]
+            }
+          },
+          customPayload: {
+            tid: serviceNowTID
           }
-        },
-        // This sends the data to Boost.ai
-        customPayload: {
-          "tid": serviceNowTID
         }
-      }
-    });
+      });
+
+    } catch (error) {
+      console.error("[Boost Embed] Failed to initialize Boost chat panel:", error);
+    }
 
   })();
 </script>
+ 
 </body>
 
 </html>
