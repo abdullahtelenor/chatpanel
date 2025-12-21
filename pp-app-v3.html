@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for People Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+        }
+
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+(function () {
+  console.group("[Boost Embed] Initialization started");
+
+  // ---------------------------------------------------------
+  // STEP 1: Retrieve ServiceNow TID
+  // ---------------------------------------------------------
+  let serviceNowTID = null;
+
+  try {
+    serviceNowTID = "t991859"; // Replace with SN injection
+
+    if (typeof serviceNowTID === "string") {
+      serviceNowTID = serviceNowTID.trim();
+    }
+
+    if (!serviceNowTID) {
+      console.warn("[Boost Embed] TID missing → sending null");
+      serviceNowTID = null;
+    } else {
+      console.info("[Boost Embed] TID detected:", serviceNowTID);
+    }
+  } catch (err) {
+    console.error("[Boost Embed] Error getting TID", err);
+  }
+
+  // ---------------------------------------------------------
+  // STEP 2: Build custom payload (MUST be before init)
+  // ---------------------------------------------------------
+  const customPayload = {
+    tid: serviceNowTID
+  };
+
+  console.info("[Boost Embed] Custom payload:", customPayload);
+
+  // ---------------------------------------------------------
+  // STEP 3: Initialize Boost ONCE
+  // ---------------------------------------------------------
+  let boost;
+
+  try {
+    boost = window.boostInit("tsstest", {
+      chatPanel: {
+        header: {
+          filters: {
+            filterValues: ["ppapp"]
+          }
+        }
+      },
+      user: {
+        customPayload // 👈 CRITICAL
+      }
+    });
+
+    console.info("[Boost Embed] boostInit successful");
+  } catch (err) {
+    console.error("[Boost Embed] boostInit failed", err);
+    console.groupEnd();
+    return;
+  }
+
+  // ---------------------------------------------------------
+  // STEP 4: Log runtime data for debugging
+  // ---------------------------------------------------------
+  try {
+    console.info(
+      "[Boost Embed] Active filters:",
+      boost.chatPanel.getFilterValues?.()
+    );
+
+    console.info(
+      "[Boost Embed] Stored custom payload:",
+      boost.user?.customPayload
+    );
+  } catch (err) {
+    console.warn("[Boost Embed] Debug logging failed", err);
+  }
+
+  console.groupEnd();
+})();
+</script>
+
+  </body>
+
+</html>
