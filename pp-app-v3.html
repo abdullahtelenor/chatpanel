@@ -53,10 +53,10 @@
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
     console.info("[Boost Embed] chatPanelOpened");
 
-    boost.chatPanel.setCustomPayload({
-      tid: serviceNowTID
-    });
+  let customPayload = { tid: serviceNowTID }; // include tId here if avaiable;
 
+  boost.chatPanel.setCustomPayload(customPayload);
+  console.log(customPayload);
     console.info("[Boost Embed] Custom payload SENT");
   });
 
