@@ -47,19 +47,14 @@
     }
   });
 
-  console.info("[Boost Embed] boostInit done");
-
-  // ✅ EARLIEST DOCUMENTED SAFE EVENT
-  boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    console.info("[Boost Embed] chatPanelOpened");
-
   let customPayload = { tid: serviceNowTID }; // include tId here if avaiable;
 
   boost.chatPanel.setCustomPayload(customPayload);
   console.info("Custom payload is as below:");
   console.log(customPayload);
   console.info("[Boost Embed] Custom payload SENT");
-  });
+
+  console.info("[Boost Embed] boostInit done");
 
   console.groupEnd();
 })();
