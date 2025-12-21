@@ -32,85 +32,51 @@
 <script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
 (function () {
-  console.group("[Boost Embed] Initialization started");
+  console.group("[Boost Embed] Init");
 
-  // ---------------------------------------------------------
-  // STEP 1: Retrieve ServiceNow TID
-  // ---------------------------------------------------------
-  let serviceNowTID = null;
+  let serviceNowTID = "t991859";
 
-  try {
-    serviceNowTID = "t991859"; // Replace with SN injection
+  console.info("[Boost Embed] TID:", serviceNowTID);
 
-    if (typeof serviceNowTID === "string") {
-      serviceNowTID = serviceNowTID.trim();
-    }
-
-    if (!serviceNowTID) {
-      console.warn("[Boost Embed] TID missing → sending null");
-      serviceNowTID = null;
-    } else {
-      console.info("[Boost Embed] TID detected:", serviceNowTID);
-    }
-  } catch (err) {
-    console.error("[Boost Embed] Error getting TID", err);
-  }
-
-  // ---------------------------------------------------------
-  // STEP 2: Build custom payload (MUST be before init)
-  // ---------------------------------------------------------
-  const customPayload = {
-    tid: serviceNowTID
-  };
-
-  console.info("[Boost Embed] Custom payload:", customPayload);
-
-  // ---------------------------------------------------------
-  // STEP 3: Initialize Boost ONCE
-  // ---------------------------------------------------------
-  let boost;
-
-  try {
-    boost = window.boostInit("tsstest", {
-      chatPanel: {
-        header: {
-          filters: {
-            filterValues: ["ppapp"]
-          }
+  // 1️⃣ INIT BOOST (ONCE)
+  const boost = window.boostInit("tsstest", {
+    chatPanel: {
+      header: {
+        filters: {
+          filterValues: ["ppapp"]
         }
-      },
-      user: {
-        customPayload // 👈 CRITICAL
       }
+    }
+  });
+
+  console.info("[Boost Embed] boostInit done");
+
+  // 2️⃣ SET CUSTOM PAYLOAD *IMMEDIATELY*
+  try {
+    boost.chatPanel.setCustomPayload({
+      tid: serviceNowTID
     });
 
-    console.info("[Boost Embed] boostInit successful");
-  } catch (err) {
-    console.error("[Boost Embed] boostInit failed", err);
-    console.groupEnd();
-    return;
-  }
-
-  // ---------------------------------------------------------
-  // STEP 4: Log runtime data for debugging
-  // ---------------------------------------------------------
-  try {
     console.info(
-      "[Boost Embed] Active filters:",
-      boost.chatPanel.getFilterValues?.()
-    );
-
-    console.info(
-      "[Boost Embed] Stored custom payload:",
-      boost.user?.customPayload
+      "[Boost Embed] Custom payload set:",
+      boost.chatPanel.getCustomPayload?.()
     );
   } catch (err) {
-    console.warn("[Boost Embed] Debug logging failed", err);
+    console.error("[Boost Embed] Failed to set payload", err);
   }
+
+  // 3️⃣ DEBUG: confirm BEFORE chat starts
+  setTimeout(() => {
+    console.info(
+      "[Boost Embed] Payload after delay:",
+      boost.chatPanel.getCustomPayload?.()
+    );
+  }, 500);
 
   console.groupEnd();
 })();
 </script>
+
 
   </body>
 
