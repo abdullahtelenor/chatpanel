@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP-App</title>
+  <style>
+    body {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.4);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+(function () {
+  // ---------------------------------------------------------
+  // STEP A: Retrieve ServiceNow TID safely
+  // ---------------------------------------------------------
+  let serviceNowTID = null;
+
+  try {
+    // Example injection methods (use ONE of these in production):
+    // serviceNowTID = window.NOW?.user?.userID;
+    // serviceNowTID = "${current_user.user_name}";
+
+    serviceNowTID = "t991859";
+
+    // Normalize & validate
+    if (typeof serviceNowTID === "string") {
+      serviceNowTID = serviceNowTID.trim();
+    }
+
+    if (!serviceNowTID) {
+      console.warn(
+        "[Boost Embed] ServiceNow TID is missing or empty. Sending null."
+      );
+      serviceNowTID = null;
+    } else {
+      console.info("[Boost Embed] ServiceNow TID detected:", serviceNowTID);
+    }
+  } catch (error) {
+    console.error("[Boost Embed] Failed to retrieve ServiceNow TID:", error);
+    serviceNowTID = null;
+  }
+
+  // ---------------------------------------------------------
+  // STEP B: Initialize Boost with Custom Payload
+  // ---------------------------------------------------------
+  try {
+    window.boostInit("tsstest", {
+      chatPanel: {
+        header: {
+          filters: {
+            filterValues: ["ppapp"],
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error(
+      "[Boost Embed] Failed to initialize Boost chat panel:",
+      error
+    );
+  }
+
+  let customPayload = { tid: serviceNowTID }; // include tId here if avaiable;
+
+  boost.chatPanel.setCustomPayload(customPayload);
+
+})();
+</script>
+
+</body>
+
+</html>
