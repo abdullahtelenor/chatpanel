@@ -34,11 +34,9 @@
 (function () {
   console.group("[Boost Embed] Init");
 
-  let serviceNowTID = "t991859";
-
+  const serviceNowTID = "t991859";
   console.info("[Boost Embed] TID:", serviceNowTID);
 
-  // 1️⃣ INIT BOOST (ONCE)
   const boost = window.boostInit("tsstest", {
     chatPanel: {
       header: {
@@ -51,31 +49,21 @@
 
   console.info("[Boost Embed] boostInit done");
 
-  // 2️⃣ SET CUSTOM PAYLOAD *IMMEDIATELY*
-  try {
+  // ✅ EARLIEST DOCUMENTED SAFE EVENT
+  boost.chatPanel.addEventListener("chatPanelOpened", () => {
+    console.info("[Boost Embed] chatPanelOpened");
+
     boost.chatPanel.setCustomPayload({
       tid: serviceNowTID
     });
 
-    console.info(
-      "[Boost Embed] Custom payload set:",
-      boost.chatPanel.getCustomPayload?.()
-    );
-  } catch (err) {
-    console.error("[Boost Embed] Failed to set payload", err);
-  }
-
-  // 3️⃣ DEBUG: confirm BEFORE chat starts
-  setTimeout(() => {
-    console.info(
-      "[Boost Embed] Payload after delay:",
-      boost.chatPanel.getCustomPayload?.()
-    );
-  }, 500);
+    console.info("[Boost Embed] Custom payload SENT");
+  });
 
   console.groupEnd();
 })();
 </script>
+
 
 
   </body>
