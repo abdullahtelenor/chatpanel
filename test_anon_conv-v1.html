@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for People Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+        }
+
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+<script src="https://tsstest.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+
+
+            const boost = window.boostInit("tsstest");
+            let customPayload = {}; // include tId here if avaiable;
+
+
+
+
+
+            boost.chatPanel.setCustomPayload(customPayload);
+            let conversation_history = " ";
+ 
+            function anonymizeConversations(action_id) {
+                const events = ["messageSent", "actionLinkClicked", "externalLinkClicked"];
+
+                events.forEach( (eventName) => {
+                    boost.chatPanel.addEventListener(eventName, () => {
+                        boost.chatPanel.triggerAction(action_id);
+                    }
+                    , {
+                        once: true
+                    });
+                }
+                );
+            }
+
+            // Initialize via custom event: `anonymizeConversations`
+            boost.chatPanel.addEventListener("anonymizeConversations", (event) => {
+                console.log(event);
+
+                const action_id = event?.detail?.action_id;
+                conversation_history += event?.detail?.conversation_history || "";
+                customPayload = {...customPayload, conversation_history};
+                console.log(customPayload);
+
+                if (!action_id)
+                    return;
+
+                // Delay attaching the one-time listeners (don’t call immediately)
+                setTimeout( () => anonymizeConversations(action_id), 200);
+                boost.chatPanel.setCustomPayload(customPayload);
+            }
+            );
+</script>
+
+
+
+  </body>
+
+</html>
