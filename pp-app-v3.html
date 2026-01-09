@@ -57,6 +57,12 @@
   console.info("[Boost Embed] boostInit done");
 
   console.groupEnd();
+
+boost.chatPanel.addEventListener("setFilterValue", ev => {
+            const v = ev.detail.filterValue;
+            boost.chatPanel.setFilterValues(v);
+            setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+        });
 })();
 </script>
 
