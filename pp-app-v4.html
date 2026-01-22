@@ -47,10 +47,11 @@
   });
 
   console.info("[Boost Embed] boostInit done");
+  let customPayload = { tid: serviceNowTID }; // include tId here if avaiable;
 
   // 🔹 Apply TID ONLY when chat panel is opened
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    let customPayload = { tid: serviceNowTID }; // include tId here if avaiable;
+    
 
     boost.chatPanel.setCustomPayload(customPayload);
 
