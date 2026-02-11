@@ -60,22 +60,31 @@
   console.info("[Boost Embed] boostInit done");
   console.groupEnd();
 
-
-  // ---- Re-send TID every time chat is opened ----
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    console.group("[Boost Embed] Chat Opened");
 
-    const serviceNowTID = getServiceNowTID(); // re-fetch dynamically
+    const CONV_KEY = "boostai.conversation.id";
+    const convId = localStorage.getItem(CONV_KEY);
+    const tidSent = sessionStorage.getItem("tidSent");
 
-    if (serviceNowTID) {
-      boost.chatPanel.setCustomPayload({ tid: serviceNowTID });
-      console.info("[Boost Embed] Re-sent TID on chat open:", serviceNowTID);
-    } else {
-      console.warn("[Boost Embed] No TID found on chat open");
+    // If no conversation → nothing to attach yet
+    if (!convId) return;
+
+    // If already sent for this session → skip
+    if (tidSent === convId) return;
+
+    const tid = getServiceNowTID();
+
+    if (tid) {
+        boost.chatPanel.setCustomPayload({ tid: tid });
+
+        // Mark TID as sent for this conversation
+        sessionStorage.setItem("tidSent", convId);
     }
+});
 
-    console.groupEnd();
-  });
+
+
+
 
 
   boost.chatPanel.addEventListener("setFilterValue", ev => {
