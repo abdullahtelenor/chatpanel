@@ -87,9 +87,6 @@
   boost.chatPanel.addEventListener("chatPanelClosed", () => {
     console.group("[Boost Embed] Chat Closed");
 
-    // Clear TID variable
-    initialTID = "";
-
     // Clear custom payload inside Boost
     boost.chatPanel.setCustomPayload({});
 
