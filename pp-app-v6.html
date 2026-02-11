@@ -83,6 +83,20 @@
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
   });
 
+  boost.chatPanel.addEventListener("chatPanelClosed", () => {
+    console.group("[Boost Embed] Chat Closed");
+
+    // Clear TID variable
+    initialTID = null;
+
+    // Clear custom payload inside Boost
+    boost.chatPanel.setCustomPayload({});
+
+    console.info("[Boost Embed] TID and custom payload cleared");
+
+    console.groupEnd();
+});
+
 })();
 </script>
 </body>
