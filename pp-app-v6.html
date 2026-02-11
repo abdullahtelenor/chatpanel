@@ -56,6 +56,7 @@
     console.info("[Boost Embed] Initial TID sent:", initialTID);
   }
 
+  const tidSent = sessionStorage.getItem("tidSent");
   console.info("[Boost Embed] boostInit done");
   console.groupEnd();
 
@@ -91,6 +92,9 @@
 
     // Clear custom payload inside Boost
     boost.chatPanel.setCustomPayload({});
+
+    // Remove session flag
+    sessionStorage.removeItem("tidSent");
 
     console.info("[Boost Embed] TID and custom payload cleared");
 
