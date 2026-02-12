@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for People Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+        }
+
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+
+(function () {
+  console.group("[Boost Embed] Init");
+
+  const CONV_KEY = "boostai.conversation.id";
+
+  function getServiceNowTID() {
+    // Replace with your dynamic logic
+    return "t991859"; 
+  }
+
+  const boost = window.boostInit("tss", {
+    chatPanel: {
+      header: {
+        filters: {
+          filterValues: ["ppapp"]
+        }
+      }
+    }
+  });
+
+  // Function to safely push the TID
+  const pushTID = (source) => {
+    const tid = getServiceNowTID();
+    if (tid) {
+      boost.chatPanel.setCustomPayload({ tid: tid });
+      console.info(`[Boost Embed] TID pushed via ${source}:`, tid);
+    }
+  };
+
+  // 1. Initial push on page load
+  pushTID("Page Load");
+
+  console.info("[Boost Embed] boostInit done");
+  console.groupEnd();
+
+  // 2. Refresh TID on Open
+  boost.chatPanel.addEventListener("chatPanelOpened", () => {
+    console.group("[Boost Embed] Chat Opened");
+    
+    // We want to push the payload even if the conversation is just starting.
+    pushTID("Panel Open");
+    
+    console.groupEnd();
+  });
+
+  // 3. Filter Handling
+  boost.chatPanel.addEventListener("setFilterValue", ev => {
+    const v = ev.detail.filterValue;
+    boost.chatPanel.setFilterValues(v);
+    setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+  });
+
+  // 4. Handle Closure 
+  boost.chatPanel.addEventListener("chatPanelClosed", () => {
+    // IMPORTANT: Do not clear the payload here if you want the bot 
+    // to remember the user info when they reopen the chat.
+    // Only clear sessionStorage if you want to force a re-fetch logic.
+    console.info("[Boost Embed] Chat closed - state preserved");
+  });
+
+})();
+  </script>
+</body>
+</html>
