@@ -32,63 +32,54 @@
 <script>
 
 (function () {
-  console.group("[Boost Embed] Init");
-
   const CONV_KEY = "boostai.conversation.id";
 
   function getServiceNowTID() {
-    // Replace with your dynamic logic
+    // Dynamically fetch from your environment
     return "t991859"; 
   }
 
   const boost = window.boostInit("tss", {
     chatPanel: {
       header: {
-        filters: {
-          filterValues: ["ppapp"]
-        }
+        filters: { filterValues: ["ppapp"] }
       }
     }
   });
 
-  // Function to safely push the TID
-  const pushTID = (source) => {
+  const sendPayload = (trigger) => {
     const tid = getServiceNowTID();
     if (tid) {
       boost.chatPanel.setCustomPayload({ tid: tid });
-      console.info(`[Boost Embed] TID pushed via ${source}:`, tid);
+      console.log(`[Boost] Payload sent via ${trigger}:`, tid);
     }
   };
 
-  // 1. Initial push on page load
-  pushTID("Page Load");
+  // 1. Initial Load
+  sendPayload("Init");
 
-  console.info("[Boost Embed] boostInit done");
-  console.groupEnd();
-
-  // 2. Refresh TID on Open
+  // 2. Refresh on Open (With a slight delay to ensure the session is ready)
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    console.group("[Boost Embed] Chat Opened");
-    
-    // We want to push the payload even if the conversation is just starting.
-    pushTID("Panel Open");
-    
-    console.groupEnd();
+    setTimeout(() => {
+      sendPayload("Re-open");
+    }, 100); 
   });
 
-  // 3. Filter Handling
+  // 3. Filter Logic
   boost.chatPanel.addEventListener("setFilterValue", ev => {
     const v = ev.detail.filterValue;
     boost.chatPanel.setFilterValues(v);
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
   });
 
-  // 4. Handle Closure 
+  // 4. RESET OPTION (Crucial if the first method still fails)
+  // If the bot refuses to update an existing session, 
+  // you may need to clear the session on close so it's ALWAYS "the first time".
   boost.chatPanel.addEventListener("chatPanelClosed", () => {
-    // IMPORTANT: Do not clear the payload here if you want the bot 
-    // to remember the user info when they reopen the chat.
-    // Only clear sessionStorage if you want to force a re-fetch logic.
-    console.info("[Boost Embed] Chat closed - state preserved");
+    // Only uncomment the line below if you want the chat history 
+    // to disappear every time they close the window:
+    // localStorage.removeItem(CONV_KEY); 
+    console.log("[Boost] Panel closed");
   });
 
 })();
