@@ -78,7 +78,7 @@
   boost.chatPanel.addEventListener("chatPanelClosed", () => {
     // Only uncomment the line below if you want the chat history 
     // to disappear every time they close the window:
-    // localStorage.removeItem(CONV_KEY); 
+    localStorage.removeItem(CONV_KEY); 
     console.log("[Boost] Panel closed");
   });
 
