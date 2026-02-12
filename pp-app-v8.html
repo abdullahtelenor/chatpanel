@@ -50,39 +50,48 @@
   
   const CONV_KEY = "boostai.conversation.id";
   
+  // ---- Initial payload on page load ----
+  const initialTID = getServiceNowTID();
+  if (initialTID) {
+    boost.chatPanel.setCustomPayload({ tid: initialTID });
+    console.info("[Boost Embed] Initial TID sent:", initialTID);
+  }
+  
   console.info("[Boost Embed] boostInit done");
   console.groupEnd();
   
-  // ---- Send TID after conversation is created ----
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
     console.group("[Boost Embed] Chat Opened");
     
+    const convId = localStorage.getItem(CONV_KEY);
+    const tidSent = sessionStorage.getItem("tidSent");
+    
+    console.info("[Boost Embed] convId:", convId);
+    console.info("[Boost Embed] tidSent:", tidSent);
+    
+    // If no conversation → initial TID already set at page load
+    if (!convId) {
+      console.info("[Boost Embed] No conversation yet, using initial TID");
+      console.groupEnd();
+      return;
+    }
+    
+    // If already sent for this conversation → skip
+    if (tidSent === convId) {
+      console.info("[Boost Embed] TID already sent for this conversation");
+      console.groupEnd();
+      return;
+    }
+    
+    // Send TID and mark it as sent
     const tid = getServiceNowTID();
-    console.info("[Boost Embed] TID:", tid);
+    if (tid) {
+      boost.chatPanel.setCustomPayload({ tid: tid });
+      sessionStorage.setItem("tidSent", convId);
+      console.info("[Boost Embed] TID sent for conversation:", convId);
+    }
     
-    // Wait for conversation to be created
-    const checkAndSendTID = (attempt = 0) => {
-      const convId = localStorage.getItem(CONV_KEY);
-      
-      if (convId) {
-        console.info("[Boost Embed] convId found:", convId);
-        
-        if (tid) {
-          boost.chatPanel.setCustomPayload({ tid: tid });
-          console.info("[Boost Embed] TID sent successfully");
-        }
-        console.groupEnd();
-      } else if (attempt < 10) {
-        // Retry up to 10 times (2 seconds total)
-        console.info(`[Boost Embed] Waiting for conversation... attempt ${attempt + 1}`);
-        setTimeout(() => checkAndSendTID(attempt + 1), 200);
-      } else {
-        console.warn("[Boost Embed] Conversation ID not found after 2 seconds");
-        console.groupEnd();
-      }
-    };
-    
-    checkAndSendTID();
+    console.groupEnd();
   });
   
   boost.chatPanel.addEventListener("setFilterValue", ev => {
@@ -91,21 +100,20 @@
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
   });
   
-  // ---- Complete reset on close ----
+  // ---- Hard refresh on close ----
   boost.chatPanel.addEventListener("chatPanelClosed", () => {
     console.group("[Boost Embed] Chat Closed");
     
-    // Clear the payload
+    // Clear everything
     boost.chatPanel.setCustomPayload({});
-    
-    // Clear the conversation ID to force fresh start
     localStorage.removeItem(CONV_KEY);
-    
-    // Clear any session flags
     sessionStorage.removeItem("tidSent");
     
-    console.info("[Boost Embed] Full reset complete - conversation cleared");
+    console.info("[Boost Embed] Triggering page reload...");
     console.groupEnd();
+    
+    // Hard refresh the page
+    window.location.reload();
   });
 })();
 </script>
