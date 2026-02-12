@@ -50,41 +50,28 @@
   
   const CONV_KEY = "boostai.conversation.id";
   
-  // ---- Initial payload on page load ----
-  const initialTID = getServiceNowTID();
-  if (initialTID) {
-    boost.chatPanel.setCustomPayload({ tid: initialTID });
-    console.info("[Boost Embed] Initial TID sent:", initialTID);
-  }
-  
   console.info("[Boost Embed] boostInit done");
   console.groupEnd();
   
+  // ---- Send TID every time panel opens ----
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    const convId = localStorage.getItem(CONV_KEY);
-    const tidSent = sessionStorage.getItem("tidSent");
+    console.group("[Boost Embed] Chat Opened");
     
-    console.info("[Boost Embed] Panel opened - convId:", convId, "tidSent:", tidSent);
-    
-    // If no conversation yet → TID will be attached to new conversation automatically
-    if (!convId) {
-      console.info("[Boost Embed] No conversation yet, waiting for creation");
-      return;
-    }
-    
-    // If already sent for this specific conversation → skip
-    if (tidSent === convId) {
-      console.info("[Boost Embed] TID already sent for this conversation");
-      return;
-    }
-    
-    // Send TID and mark it as sent
     const tid = getServiceNowTID();
+    const convId = localStorage.getItem(CONV_KEY);
+    
+    console.info("[Boost Embed] convId:", convId);
+    console.info("[Boost Embed] TID:", tid);
+    
     if (tid) {
+      // Always send TID on open
       boost.chatPanel.setCustomPayload({ tid: tid });
-      sessionStorage.setItem("tidSent", convId);
-      console.info("[Boost Embed] TID sent for conversation:", convId);
+      console.info("[Boost Embed] TID sent successfully");
+    } else {
+      console.warn("[Boost Embed] No TID available");
     }
+    
+    console.groupEnd();
   });
   
   boost.chatPanel.addEventListener("setFilterValue", ev => {
@@ -93,15 +80,24 @@
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
   });
   
+  // ---- Complete reset on close ----
   boost.chatPanel.addEventListener("chatPanelClosed", () => {
     console.group("[Boost Embed] Chat Closed");
-    // DON'T clear tidSent - keep it so we know we've already sent for this conversation
-    // DON'T clear the payload - it needs to persist for the conversation
-    console.info("[Boost Embed] Chat closed, keeping TID state");
+    
+    // Clear the payload
+    boost.chatPanel.setCustomPayload({});
+    
+    // Clear the conversation ID to force fresh start
+    localStorage.removeItem(CONV_KEY);
+    
+    // Clear any session flags
+    sessionStorage.removeItem("tidSent");
+    
+    console.info("[Boost Embed] Full reset complete - conversation cleared");
     console.groupEnd();
   });
 })();
 </script>
-
+    
 </body>
 </html>
