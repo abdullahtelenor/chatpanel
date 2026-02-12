@@ -30,64 +30,78 @@
 
 <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
-
 (function () {
-  const CONV_KEY = "boostai.conversation.id";
-
+  console.group("[Boost Embed] Init");
+  
+  // Function to dynamically fetch TID from ServiceNow
   function getServiceNowTID() {
-    // Dynamically fetch from your environment
     return "t991859"; 
   }
-
+  
   const boost = window.boostInit("tss", {
     chatPanel: {
       header: {
-        filters: { filterValues: ["ppapp"] }
+        filters: {
+          filterValues: ["ppapp"]
+        }
       }
     }
   });
-
-  // Function to initialize the payload
-  const initializeBot = () => {
+  
+  const CONV_KEY = "boostai.conversation.id";
+  
+  // ---- Initial payload on page load ----
+  const initialTID = getServiceNowTID();
+  if (initialTID) {
+    boost.chatPanel.setCustomPayload({ tid: initialTID });
+    console.info("[Boost Embed] Initial TID sent:", initialTID);
+  }
+  
+  console.info("[Boost Embed] boostInit done");
+  console.groupEnd();
+  
+  boost.chatPanel.addEventListener("chatPanelOpened", () => {
+    const convId = localStorage.getItem(CONV_KEY);
+    const tidSent = sessionStorage.getItem("tidSent");
+    
+    console.info("[Boost Embed] Panel opened - convId:", convId, "tidSent:", tidSent);
+    
+    // If no conversation yet → TID will be attached to new conversation automatically
+    if (!convId) {
+      console.info("[Boost Embed] No conversation yet, waiting for creation");
+      return;
+    }
+    
+    // If already sent for this specific conversation → skip
+    if (tidSent === convId) {
+      console.info("[Boost Embed] TID already sent for this conversation");
+      return;
+    }
+    
+    // Send TID and mark it as sent
     const tid = getServiceNowTID();
     if (tid) {
       boost.chatPanel.setCustomPayload({ tid: tid });
-      console.info("[Boost] Fresh TID injected:", tid);
+      sessionStorage.setItem("tidSent", convId);
+      console.info("[Boost Embed] TID sent for conversation:", convId);
     }
-  };
-
-  // 1. Initial Load
-  initializeBot();
-
-  // 2. Open Event
-  boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    // If the session was cleared, this will now be a brand new conversation
-    initializeBot();
   });
-
-  // 3. THE "WASH OUT" LOGIC
-  boost.chatPanel.addEventListener("chatPanelClosed", () => {
-    console.warn("[Boost] Closing: Washing out session and payload...");
-    
-    // Completely clear the conversation ID from the browser
-    localStorage.removeItem(CONV_KEY);
-    
-    // Clear the payload in the current instance
-    boost.chatPanel.setCustomPayload({});
-    
-    // Optional: If you want to be extra aggressive, you can minimize the panel 
-    // to ensure the internal state resets.
-    console.info("[Boost] Session nuked. Next open will be fresh.");
-  });
-
-  // 4. Filter Logic
+  
   boost.chatPanel.addEventListener("setFilterValue", ev => {
     const v = ev.detail.filterValue;
     boost.chatPanel.setFilterValues(v);
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
   });
-
+  
+  boost.chatPanel.addEventListener("chatPanelClosed", () => {
+    console.group("[Boost Embed] Chat Closed");
+    // DON'T clear tidSent - keep it so we know we've already sent for this conversation
+    // DON'T clear the payload - it needs to persist for the conversation
+    console.info("[Boost Embed] Chat closed, keeping TID state");
+    console.groupEnd();
+  });
 })();
-  </script>
+</script>
+
 </body>
 </html>
