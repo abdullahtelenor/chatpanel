@@ -47,39 +47,44 @@
     }
   });
 
-  const sendPayload = (trigger) => {
+  // Function to initialize the payload
+  const initializeBot = () => {
     const tid = getServiceNowTID();
     if (tid) {
       boost.chatPanel.setCustomPayload({ tid: tid });
-      console.log(`[Boost] Payload sent via ${trigger}:`, tid);
+      console.info("[Boost] Fresh TID injected:", tid);
     }
   };
 
   // 1. Initial Load
-  sendPayload("Init");
+  initializeBot();
 
-  // 2. Refresh on Open (With a slight delay to ensure the session is ready)
+  // 2. Open Event
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
-    setTimeout(() => {
-      sendPayload("Re-open");
-    }, 100); 
+    // If the session was cleared, this will now be a brand new conversation
+    initializeBot();
   });
 
-  // 3. Filter Logic
+  // 3. THE "WASH OUT" LOGIC
+  boost.chatPanel.addEventListener("chatPanelClosed", () => {
+    console.warn("[Boost] Closing: Washing out session and payload...");
+    
+    // Completely clear the conversation ID from the browser
+    localStorage.removeItem(CONV_KEY);
+    
+    // Clear the payload in the current instance
+    boost.chatPanel.setCustomPayload({});
+    
+    // Optional: If you want to be extra aggressive, you can minimize the panel 
+    // to ensure the internal state resets.
+    console.info("[Boost] Session nuked. Next open will be fresh.");
+  });
+
+  // 4. Filter Logic
   boost.chatPanel.addEventListener("setFilterValue", ev => {
     const v = ev.detail.filterValue;
     boost.chatPanel.setFilterValues(v);
     setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
-  });
-
-  // 4. RESET OPTION (Crucial if the first method still fails)
-  // If the bot refuses to update an existing session, 
-  // you may need to clear the session on close so it's ALWAYS "the first time".
-  boost.chatPanel.addEventListener("chatPanelClosed", () => {
-    // Only uncomment the line below if you want the chat history 
-    // to disappear every time they close the window:
-    localStorage.removeItem(CONV_KEY); 
-    console.log("[Boost] Panel closed");
   });
 
 })();
