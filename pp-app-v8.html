@@ -53,25 +53,36 @@
   console.info("[Boost Embed] boostInit done");
   console.groupEnd();
   
-  // ---- Send TID every time panel opens ----
+  // ---- Send TID after conversation is created ----
   boost.chatPanel.addEventListener("chatPanelOpened", () => {
     console.group("[Boost Embed] Chat Opened");
     
     const tid = getServiceNowTID();
-    const convId = localStorage.getItem(CONV_KEY);
-    
-    console.info("[Boost Embed] convId:", convId);
     console.info("[Boost Embed] TID:", tid);
     
-    if (tid) {
-      // Always send TID on open
-      boost.chatPanel.setCustomPayload({ tid: tid });
-      console.info("[Boost Embed] TID sent successfully");
-    } else {
-      console.warn("[Boost Embed] No TID available");
-    }
+    // Wait for conversation to be created
+    const checkAndSendTID = (attempt = 0) => {
+      const convId = localStorage.getItem(CONV_KEY);
+      
+      if (convId) {
+        console.info("[Boost Embed] convId found:", convId);
+        
+        if (tid) {
+          boost.chatPanel.setCustomPayload({ tid: tid });
+          console.info("[Boost Embed] TID sent successfully");
+        }
+        console.groupEnd();
+      } else if (attempt < 10) {
+        // Retry up to 10 times (2 seconds total)
+        console.info(`[Boost Embed] Waiting for conversation... attempt ${attempt + 1}`);
+        setTimeout(() => checkAndSendTID(attempt + 1), 200);
+      } else {
+        console.warn("[Boost Embed] Conversation ID not found after 2 seconds");
+        console.groupEnd();
+      }
+    };
     
-    console.groupEnd();
+    checkAndSendTID();
   });
   
   boost.chatPanel.addEventListener("setFilterValue", ev => {
