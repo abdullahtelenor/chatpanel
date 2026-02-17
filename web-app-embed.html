@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="nb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Chat Panel for People Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0px;
+        }
+
+        .chat-icon {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+
+<script>
+(function () {
+  console.group("[TeSS Boost Embed Router]");
+
+  const CONV_KEY = "boostai.conversation.id";
+
+  /* -----------------------------
+     Detect TID from ServiceNow
+     If exists → MOBILE
+     If not → WEB
+  ------------------------------ */
+  function getServiceNowTID() {
+    // 👉 Replace with actual ServiceNow variable if different
+    return "991859";
+  }
+
+  const serviceNowTID = getServiceNowTID();
+  const isMobile = !!serviceNowTID;
+
+  console.info("Detected mode:", isMobile ? "MOBILE" : "WEB");
+  console.info("TID:", serviceNowTID);
+
+  /* =============================
+     MOBILE VERSION
+     ============================= */
+  function runMobileVersion() {
+
+    const boost = window.boostInit("tss", {
+      chatPanel: {
+        header: {
+          filters: { filterValues: ["ppapp"] }
+        }
+      }
+    });
+
+    if (serviceNowTID) {
+      boost.chatPanel.setCustomPayload({ tid: serviceNowTID });
+      console.info("Initial TID sent:", serviceNowTID);
+    }
+
+    boost.chatPanel.addEventListener("chatPanelOpened", () => {
+      const convId = localStorage.getItem(CONV_KEY);
+      const tidSent = sessionStorage.getItem("tidSent");
+
+      if (!convId) return;
+      if (tidSent === convId) return;
+
+      boost.chatPanel.setCustomPayload({ tid: serviceNowTID });
+      sessionStorage.setItem("tidSent", convId);
+      console.info("TID sent for conversation:", convId);
+    });
+
+    boost.chatPanel.addEventListener("setFilterValue", ev => {
+      const v = ev.detail.filterValue;
+      boost.chatPanel.setFilterValues(v);
+      setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+    });
+
+    boost.chatPanel.addEventListener("chatPanelClosed", () => {
+      boost.chatPanel.setCustomPayload({});
+      localStorage.removeItem(CONV_KEY);
+      sessionStorage.removeItem("tidSent");
+    });
+  }
+
+  /* =============================
+     WEB VERSION (SSO)
+     ============================= */
+  function runWebVersion() {
+
+    const boost = window.boostInit("tss");
+
+    const hasSaml = () =>
+      new URLSearchParams(location.search).has("saml_code");
+
+    const ssoUrl = () => {
+      const qs = new URLSearchParams({ sso: "", RelayState: location.href });
+      const url = new URL("https://tss.boost.ai/api/auth/saml2/");
+      url.search = qs.toString();
+      return url.toString();
+    };
+
+    const redirectToSso = () => location.replace(ssoUrl());
+
+    boost.chatPanel.addEventListener("chatPanelOpened", () => {
+      if (hasSaml()) return;
+
+      const convId = localStorage.getItem(CONV_KEY);
+      const ssoAttempted = sessionStorage.getItem("ssoAttempted");
+
+      if (!convId && !ssoAttempted) {
+        sessionStorage.setItem("ssoAttempted", "true");
+        redirectToSso();
+        return;
+      }
+
+      fetch("https://tss.boost.ai/api/auth/saml2/verify_front_session_id/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=UTF-8" },
+        body: JSON.stringify({ conversation_id: convId })
+      }).then(res => {
+        if (res.status === 403) {
+          localStorage.removeItem(CONV_KEY);
+          sessionStorage.removeItem("ssoAttempted");
+          redirectToSso();
+        }
+      });
+    });
+
+    boost.chatPanel.addEventListener("chatPanelClosed", () => {
+      sessionStorage.removeItem("ssoAttempted");
+    });
+
+    boost.chatPanel.addEventListener("setFilterValue", ev => {
+      const v = ev.detail.filterValue;
+      boost.chatPanel.setFilterValues(v);
+      setTimeout(() => boost.chatPanel.setFilterValues(v), 500);
+    });
+
+    if (hasSaml()) {
+      boost.chatPanel.show();
+    }
+  }
+
+  /* -----------------------------
+     Route execution
+  ------------------------------ */
+  if (isMobile) {
+    runMobileVersion();
+  } else {
+    runWebVersion();
+  }
+
+  console.groupEnd();
+})();
+</script>
+</body>
+</html>
