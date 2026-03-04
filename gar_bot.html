@@ -27,7 +27,7 @@
   <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
   <script>
     (function () {
-      const CONV_KEY = "boostai.conversation.id";
+      //const CONV_KEY = "boostai.conversation.id";
 
       // Initialize Boost only once with config
       const boost = window.boostInit("tss", {
@@ -37,9 +37,14 @@
               filterValues: ["gar"]
             }
           }
+          settings: {
+            contextTopicIntentId: "4106";
+            
+          }
         }
       });
 
+      /*
       const hasSaml = () =>
         new URLSearchParams(location.search).has("saml_code");
 
@@ -52,7 +57,7 @@
 
       const redirectToSso = () => location.replace(ssoUrl());
 
-      /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
+      // ---------- SSO verify / redirect (runs only after user opens panel) ---------- //
       boost.chatPanel.addEventListener("chatPanelOpened", () => {
         if (hasSaml()) return; // already logged in → nothing to do
 
@@ -87,6 +92,8 @@
       if (hasSaml()) {
         boost.chatPanel.show();
       }
+*/
+      
     })();
   </script>
 
