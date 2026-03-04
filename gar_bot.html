@@ -24,26 +24,28 @@
 </head>
 <body>
 
-  <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
-  <script>
-    (function () {
-      //const CONV_KEY = "boostai.conversation.id";
+  
 
-      // Initialize Boost only once with config
-      const boost = window.boostInit("tss", {
-        chatPanel: {
-          header: {
-            filters: {
-              filterValues: ["gar"]
+      <script src="https://tss.boost.ai/chatPanel/chatPanel.js"></script>
+      <script>
+        (function () {
+      
+          const boost = window.boostInit("tss", {
+            chatPanel: {
+              header: {
+                filters: {
+                  filterValues: ["gar"]
+                }
+              }
             }
-          },
-          settings: {
-            contextTopicIntentId: "4106"
-          }
-        }
-      });
-
-      boost.chatpanel.setContextIntentId(4106);
+          });
+      
+          boost.chatPanel.addEventListener("chatPanelOpened", () => {
+            boost.chatPanel.setContextIntentId("4106");
+          });
+      
+        })();
+    </script>
 
       /*
       const hasSaml = () =>
