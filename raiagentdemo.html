@@ -59,9 +59,11 @@
 
       /* ---------- SSO verify / redirect (runs only after user opens panel) ---------- */
       boost.chatPanel.addEventListener("chatPanelOpened", () => {
-        boost.chatPanel.triggerAction(3158);
-        if (hasSaml()) return; // already logged in → nothing to do
-
+        
+        if (hasSaml()){
+          boost.chatPanel.triggerAction(3158);
+          return; // already logged in → nothing to do
+        }
         const convId = localStorage.getItem(CONV_KEY);
         const ssoAttempted = sessionStorage.getItem("ssoAttempted");
 
