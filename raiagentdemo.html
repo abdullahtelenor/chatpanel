@@ -61,9 +61,9 @@
       boost.chatPanel.addEventListener("chatPanelOpened", () => {
         
         if (hasSaml()){
-          boost.chatPanel.triggerAction(3158);
           return; // already logged in → nothing to do
         }
+        boost.chatPanel.triggerAction(3158);
         const convId = localStorage.getItem(CONV_KEY);
         const ssoAttempted = sessionStorage.getItem("ssoAttempted");
 
